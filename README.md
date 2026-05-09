@@ -6,15 +6,15 @@ A powerful Flutter debugging and runtime risk detection toolkit that helps ident
 
 ## ✨ Features
 
-✅ RenderFlex overflow detection  
-✅ Release-risk analysis  
-✅ Async exception tracking  
-✅ Rebuild storm detection  
-✅ Smart error suggestions  
-✅ CI failure prediction  
-✅ Lint and formatting checks  
-✅ Git pre-commit validation  
-✅ Debug overlay (coming soon)
+- ✅ RenderFlex overflow detection
+- ✅ Release-risk analysis
+- ✅ Async exception tracking
+- ✅ Rebuild storm detection
+- ✅ Smart error suggestions
+- ✅ CI failure prediction
+- ✅ Lint and formatting checks
+- ✅ Git pre-commit validation
+- 🚧 Debug overlay (coming soon)
 
 ---
 
@@ -34,8 +34,88 @@ Some issues:
 
 # 📦 Installation
 
-Add dependency:
-
 ```yaml
 dependencies:
   flutter_risk_detector: latest_version
+```
+
+---
+
+# 🛠 Usage
+
+## Initialize
+
+```dart
+void main() {
+  FlutterRiskDetector.initialize();
+
+  runApp(MyApp());
+}
+```
+
+---
+
+# 🔍 Detect Runtime Risks
+
+```dart
+FlutterRiskDetector.initialize(
+  detectOverflows: true,
+  detectRebuildStorms: true,
+  detectAsyncRisks: true,
+);
+```
+
+---
+
+# ⚠ Example Warning
+
+```txt
+⚠ RenderFlex overflow detected in CheckoutScreen
+
+Possible Fix:
+- Wrap child with Expanded
+- Use Flexible
+- Add SingleChildScrollView
+```
+
+---
+
+# 📋 CLI Tool
+
+```bash
+risk_detector check
+```
+
+Checks:
+- flutter analyze
+- formatting issues
+- test failures
+- CI risks
+
+---
+
+# 🧠 Planned Features
+
+- Release mode simulation
+- FPS monitoring
+- Memory warnings
+- DevTools integration
+- VSCode extension
+- AI-powered debugging suggestions
+
+---
+
+# 🤝 Contributions
+
+Contributions are welcome!
+
+Feel free to:
+- open issues
+- submit pull requests
+- suggest improvements
+
+---
+
+# 📄 License
+
+MIT License © 2026 Sweta Jain
