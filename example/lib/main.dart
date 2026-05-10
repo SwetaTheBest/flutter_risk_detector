@@ -57,10 +57,12 @@ class _HomeScreenState
             // Intentional overflow
             Row(
               children: [
-                Container(
-                  width: 500,
-                  height: 50,
-                  color: Colors.red,
+                Expanded(
+                  child: Container(
+                    width: 500,
+                    height: 50,
+                    color: Colors.red,
+                  ),
                 ),
               ],
             ),

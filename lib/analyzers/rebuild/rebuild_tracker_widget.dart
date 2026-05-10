@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'rebuild_analyzer.dart';
+
 class RiskRebuildTracker extends StatefulWidget {
   final Widget child;
   final String tag;
@@ -11,16 +13,27 @@ class RiskRebuildTracker extends StatefulWidget {
 }
 
 class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
-  int rebuildCount = 0;
+  int _rebuildCount = 0;
+  late DateTime _startTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTime = DateTime.now();
+  }
 
   @override
   Widget build(BuildContext context) {
-    rebuildCount++;
+    _rebuildCount++;
+    debugPrint('🔄 ${widget.tag} rebuilt $_rebuildCount times');
 
-    debugPrint('🔄 ${widget.tag} rebuilt $rebuildCount times');
-
-    if (rebuildCount > 20) {
-      debugPrint('⚠ POSSIBLE REBUILD STORM DETECTED in ${widget.tag}');
+    if (RebuildAnalyzer.shouldReport(_rebuildCount)) {
+      final result = RebuildAnalyzer.analyze(
+        tag: widget.tag,
+        rebuildCount: _rebuildCount,
+        window: DateTime.now().difference(_startTime),
+      );
+      debugPrint(result.formattedMessage);
     }
 
     return widget.child;
