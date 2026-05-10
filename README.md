@@ -1,39 +1,121 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# flutter_risk_detector
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+A powerful Flutter debugging and runtime risk detection toolkit that helps identify release-mode issues, UI overflows, rebuild storms, async risks, and CI pipeline failures before they reach production.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+---
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+## ✨ Features
 
-## Features
+- ✅ RenderFlex overflow detection
+- ✅ Release-risk analysis
+- ✅ Async exception tracking
+- ✅ Rebuild storm detection
+- ✅ Smart error suggestions
+- ✅ CI failure prediction
+- ✅ Lint and formatting checks
+- ✅ Git pre-commit validation
+- 🚧 Debug overlay (coming soon)
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+---
 
-## Getting started
+## 🚀 Why flutter_risk_detector?
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Flutter apps often behave differently in debug and release modes.
 
-## Usage
+Some issues:
+- only appear in release builds
+- fail CI pipelines unexpectedly
+- are difficult to debug
+- silently affect performance
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+`flutter_risk_detector` helps catch these problems early during development.
 
-```dart
-const like = 'sample';
+---
+
+# 📦 Installation
+
+```yaml
+dependencies:
+  flutter_risk_detector: latest_version
 ```
 
-## Additional information
+---
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+# 🛠 Usage
+
+## Initialize
+
+```dart
+void main() {
+  FlutterRiskDetector.initialize();
+
+  runApp(MyApp());
+}
+```
+
+---
+
+# 🔍 Detect Runtime Risks
+
+```dart
+FlutterRiskDetector.initialize(
+  detectOverflows: true,
+  detectRebuildStorms: true,
+  detectAsyncRisks: true,
+);
+```
+
+---
+
+# ⚠ Example Warning
+
+```txt
+⚠ RenderFlex overflow detected in CheckoutScreen
+
+Possible Fix:
+- Wrap child with Expanded
+- Use Flexible
+- Add SingleChildScrollView
+```
+
+---
+
+# 📋 CLI Tool
+
+```bash
+risk_detector check
+```
+
+Checks:
+- flutter analyze
+- formatting issues
+- test failures
+- CI risks
+
+---
+
+# 🧠 Planned Features
+
+- Release mode simulation
+- FPS monitoring
+- Memory warnings
+- DevTools integration
+- VSCode extension
+- AI-powered debugging suggestions
+
+---
+
+# 🤝 Contributions
+
+Contributions are welcome!
+
+Feel free to:
+- open issues
+- submit pull requests
+- suggest improvements
+
+---
+
+# 📄 License
+
+MIT License © 2026 Sweta Jain
