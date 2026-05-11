@@ -32,7 +32,11 @@ class RiskLogger {
   }
 
   static bool _isThrottled(String message) {
-    // Use first 60 chars as the dedup key to group similar messages
+    // Prune stale entries to prevent unbounded map growth
+    if (_lastSeen.length > 500) {
+      final cutoff = DateTime.now().subtract(_throttle * 10);
+      _lastSeen.removeWhere((_, t) => t.isBefore(cutoff));
+    }
     final key = message.length > 60 ? message.substring(0, 60) : message;
     final last = _lastSeen[key];
     if (last != null && DateTime.now().difference(last) < _throttle) return true;

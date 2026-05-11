@@ -9,7 +9,7 @@ class LintIssue {
   final LintSeverity severity;
   final String? offendingCode;
 
-  LintIssue({
+  const LintIssue({
     required this.file,
     required this.line,
     required this.rule,
@@ -18,6 +18,36 @@ class LintIssue {
     required this.severity,
     this.offendingCode,
   });
+
+  LintIssue copyWith({
+    String? file,
+    int? line,
+    String? rule,
+    String? description,
+    String? suggestion,
+    LintSeverity? severity,
+    String? offendingCode,
+  }) =>
+      LintIssue(
+        file: file ?? this.file,
+        line: line ?? this.line,
+        rule: rule ?? this.rule,
+        description: description ?? this.description,
+        suggestion: suggestion ?? this.suggestion,
+        severity: severity ?? this.severity,
+        offendingCode: offendingCode ?? this.offendingCode,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is LintIssue &&
+      file == other.file &&
+      line == other.line &&
+      rule == other.rule &&
+      severity == other.severity;
+
+  @override
+  int get hashCode => Object.hash(file, line, rule, severity);
 
   String get icon => switch (severity) {
         LintSeverity.error => '❌',

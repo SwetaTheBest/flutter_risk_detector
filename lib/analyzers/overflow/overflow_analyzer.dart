@@ -3,9 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'overflow_result.dart';
 
 class OverflowAnalyzer {
-  static bool isOverflow(String error) {
-    return error.contains('RenderFlex overflowed');
-  }
+  // Compiled once at class load — not on every call
+  static final _locationRegex = RegExp(r'(lib\/[^\s]+\.dart):(\d+):(\d+)');
+  static final _pixelsRegex = RegExp(r'overflowed by ([\.\d]+) pixel');
+  static final _widgetRegex = RegExp(r'(Row|Column|Flex|ListView|Stack)');
+  static final _parentContextRegex = RegExp(r'in ([A-Z]\w+)');
+  static final _parentInfoRegex = RegExp(r'([A-Z]\w+)\(');
+
+  static bool isOverflow(String error) =>
+      error.contains('RenderFlex overflowed');
 
   static OverflowResult analyze(FlutterErrorDetails details) {
     final error = details.exceptionAsString();
@@ -33,23 +39,17 @@ class OverflowAnalyzer {
   }
 
   static String _extractWidgetName(String error, String context, String widgetInfo) {
-    // Try to extract from widget tree info (most precise)
-    final widgetMatch = RegExp(r'(Row|Column|Flex|ListView|Stack)').firstMatch(widgetInfo);
+    final widgetMatch = _widgetRegex.firstMatch(widgetInfo);
     if (widgetMatch != null) return widgetMatch.group(0)!;
-
-    // Fall back to context string
-    final contextMatch = RegExp(r'(Row|Column|Flex|ListView|Stack)').firstMatch(context);
+    final contextMatch = _widgetRegex.firstMatch(context);
     if (contextMatch != null) return contextMatch.group(0)!;
-
     if (error.contains('vertical')) return 'Column';
     if (error.contains('horizontal')) return 'Row';
     return 'Row/Column/Flex';
   }
 
   static Map<String, String>? _extractLocation(String stack) {
-    // Skip framework frames, find first user file in lib/
-    final regex = RegExp(r'(lib\/[^\s]+\.dart):(\d+):(\d+)');
-    for (final match in regex.allMatches(stack)) {
+    for (final match in _locationRegex.allMatches(stack)) {
       final file = match.group(1)!;
       // Skip generated and framework files
       if (!file.contains('.g.dart') && !file.contains('flutter/')) {
@@ -60,13 +60,9 @@ class OverflowAnalyzer {
   }
 
   static String? _extractParentWidget(String context, String widgetInfo) {
-    // Look for "in [WidgetName]" pattern in context
-    final match = RegExp(r'in ([A-Z][\w]+)').firstMatch(context);
+    final match = _parentContextRegex.firstMatch(context);
     if (match != null) return match.group(1);
-
-    // Try widget info for the enclosing widget
-    final infoMatch = RegExp(r'([A-Z][\w]+)\(').firstMatch(widgetInfo);
-    return infoMatch?.group(1);
+    return _parentInfoRegex.firstMatch(widgetInfo)?.group(1);
   }
 
   static String? _extractOverflowDirection(String error) {
@@ -80,7 +76,7 @@ class OverflowAnalyzer {
   }
 
   static double? _extractOverflowPixels(String error) {
-    final match = RegExp(r'overflowed by ([\d.]+) pixel').firstMatch(error);
+    final match = _pixelsRegex.firstMatch(error);
     return match != null ? double.tryParse(match.group(1)!) : null;
   }
 

@@ -1,10 +1,20 @@
 import 'rebuild_result.dart';
 
-class RebuildAnalyzer {
-  static const int _stormThreshold = 20;
-  static const int _warningThreshold = 10;
+enum _RebuildCause {
+  setStateInBuild,
+  streamEmittingFast,
+  ancestorRebuilding,
+  providerNotifying,
+  animationControllerNoConst,
+  objectCreatedInBuild,
+  parentSetState,
+}
 
-  static bool shouldReport(int count) => count > _warningThreshold;
+class RebuildAnalyzer {
+  static const int stormThreshold = 20;
+  static const int warningThreshold = 10;
+
+  static bool shouldReport(int count) => count > warningThreshold;
 
   static RebuildResult analyze({
     required String tag,
@@ -13,77 +23,81 @@ class RebuildAnalyzer {
   }) {
     final rebuildsPerSecond = rebuildCount / window.inSeconds.clamp(1, 9999);
     final causes = _detectCauses(rebuildCount, rebuildsPerSecond);
-    final suggestions = _generateSuggestions(causes);
+    final suggestions = _suggestionsFor(causes);
 
     return RebuildResult(
       tag: tag,
       rebuildCount: rebuildCount,
       window: window,
-      possibleCauses: causes,
+      possibleCauses: causes.map(_causeLabel).toList(),
       suggestions: suggestions,
     );
   }
 
-  static List<String> _detectCauses(int count, double rate) {
-    final causes = <String>[];
+  static Set<_RebuildCause> _detectCauses(int count, double rate) {
+    final causes = <_RebuildCause>{};
 
-    if (rate > 10) {
-      causes.add('setState called inside build() or initState() loop');
+    if (rate > 10) causes.add(_RebuildCause.setStateInBuild);
+    if (rate > 5) causes.add(_RebuildCause.streamEmittingFast);
+    if (count > stormThreshold) {
+      causes.add(_RebuildCause.ancestorRebuilding);
+      causes.add(_RebuildCause.providerNotifying);
     }
-
-    if (rate > 5) {
-      causes.add('Stream or ValueNotifier emitting too frequently');
+    if (count > warningThreshold) {
+      causes.add(_RebuildCause.animationControllerNoConst);
+      causes.add(_RebuildCause.objectCreatedInBuild);
     }
-
-    if (count > _stormThreshold) {
-      causes.add('Ancestor widget rebuilding and propagating down the tree');
-      causes.add('InheritedWidget / Provider notifying on every frame');
-    }
-
-    if (count > _warningThreshold) {
-      causes.add('AnimationController ticking without const subtrees');
-      causes.add('Object instance created inside build() used as a key or value');
-    }
-
-    if (causes.isEmpty) {
-      causes.add('Frequent parent setState triggering unnecessary child rebuilds');
-    }
+    if (causes.isEmpty) causes.add(_RebuildCause.parentSetState);
 
     return causes;
   }
 
-  static List<String> _generateSuggestions(List<String> causes) {
-    final suggestions = <String>[];
+  static String _causeLabel(_RebuildCause cause) => switch (cause) {
+        _RebuildCause.setStateInBuild =>
+          'setState called inside build() or initState() loop',
+        _RebuildCause.streamEmittingFast =>
+          'Stream or ValueNotifier emitting too frequently',
+        _RebuildCause.ancestorRebuilding =>
+          'Ancestor widget rebuilding and propagating down the tree',
+        _RebuildCause.providerNotifying =>
+          'InheritedWidget / Provider notifying on every frame',
+        _RebuildCause.animationControllerNoConst =>
+          'AnimationController ticking without const subtrees',
+        _RebuildCause.objectCreatedInBuild =>
+          'Object instance created inside build() used as a key or value',
+        _RebuildCause.parentSetState =>
+          'Frequent parent setState triggering unnecessary child rebuilds',
+      };
 
-    for (final cause in causes) {
-      if (cause.contains('setState called inside build')) {
-        suggestions.add('Move setState calls to event handlers, never inside build()');
-      }
-      if (cause.contains('Stream or ValueNotifier')) {
-        suggestions.add('Debounce stream events or use distinctUntilChanged()');
-        suggestions.add('Replace StreamBuilder with more granular listeners');
-      }
-      if (cause.contains('Ancestor widget rebuilding')) {
-        suggestions.add('Extract the stable subtree into a separate StatelessWidget');
-        suggestions.add('Use const constructors wherever possible');
-      }
-      if (cause.contains('InheritedWidget / Provider')) {
-        suggestions.add('Use select() to listen to only the specific field you need');
-        suggestions.add('Split large providers into smaller, focused ones');
-      }
-      if (cause.contains('AnimationController')) {
-        suggestions.add('Mark non-animated children as const to skip their rebuild');
-        suggestions.add('Use AnimatedBuilder and keep the builder scope minimal');
-      }
-      if (cause.contains('Object instance created inside build')) {
-        suggestions.add('Move object/list/map creation outside build() or use const');
-      }
-      if (cause.contains('parent setState')) {
-        suggestions.add('Lift only the changing state up; keep the rest in child widgets');
-        suggestions.add('Consider using ValueListenableBuilder for fine-grained updates');
-      }
-    }
+  static const _causeToSuggestions = <_RebuildCause, List<String>>{
+    _RebuildCause.setStateInBuild: [
+      'Move setState calls to event handlers, never inside build()',
+    ],
+    _RebuildCause.streamEmittingFast: [
+      'Debounce stream events or use distinctUntilChanged()',
+      'Replace StreamBuilder with more granular listeners',
+    ],
+    _RebuildCause.ancestorRebuilding: [
+      'Extract the stable subtree into a separate StatelessWidget',
+      'Use const constructors wherever possible',
+    ],
+    _RebuildCause.providerNotifying: [
+      'Use select() to listen to only the specific field you need',
+      'Split large providers into smaller, focused ones',
+    ],
+    _RebuildCause.animationControllerNoConst: [
+      'Mark non-animated children as const to skip their rebuild',
+      'Use AnimatedBuilder and keep the builder scope minimal',
+    ],
+    _RebuildCause.objectCreatedInBuild: [
+      'Move object/list/map creation outside build() or use const',
+    ],
+    _RebuildCause.parentSetState: [
+      'Lift only the changing state up; keep the rest in child widgets',
+      'Consider using ValueListenableBuilder for fine-grained updates',
+    ],
+  };
 
-    return suggestions.toSet().toList(); // deduplicate
-  }
+  static List<String> _suggestionsFor(Set<_RebuildCause> causes) =>
+      causes.expand((c) => _causeToSuggestions[c] ?? []).toSet().toList();
 }

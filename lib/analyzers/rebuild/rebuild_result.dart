@@ -1,3 +1,5 @@
+import 'rebuild_analyzer.dart';
+
 class RebuildResult {
   final String tag;
   final int rebuildCount;
@@ -5,7 +7,7 @@ class RebuildResult {
   final List<String> possibleCauses;
   final List<String> suggestions;
 
-  RebuildResult({
+  const RebuildResult({
     required this.tag,
     required this.rebuildCount,
     required this.window,
@@ -13,10 +15,23 @@ class RebuildResult {
     required this.suggestions,
   });
 
-  bool get isStorm => rebuildCount > 20;
+  bool get isStorm => rebuildCount > RebuildAnalyzer.stormThreshold;
+
+  double get rebuildsPerSecond =>
+      rebuildCount / window.inSeconds.clamp(1, 9999);
+
+  @override
+  bool operator ==(Object other) =>
+      other is RebuildResult &&
+      tag == other.tag &&
+      rebuildCount == other.rebuildCount &&
+      window == other.window;
+
+  @override
+  int get hashCode => Object.hash(tag, rebuildCount, window);
 
   String get formattedMessage {
-    final rate = (rebuildCount / window.inSeconds.clamp(1, 9999)).toStringAsFixed(1);
+    final rate = rebuildsPerSecond.toStringAsFixed(1);
     return '''
 ${isStorm ? '🔴 REBUILD STORM' : '🟡 EXCESSIVE REBUILDS'} — $tag
 

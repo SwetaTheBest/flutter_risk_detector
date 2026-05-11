@@ -8,7 +8,7 @@ class OverflowResult {
   final String? overflowDirection;
   final double? overflowPixels;
 
-  OverflowResult({
+  const OverflowResult({
     required this.widgetName,
     required this.fileName,
     required this.suggestion,
@@ -18,6 +18,20 @@ class OverflowResult {
     this.overflowDirection,
     this.overflowPixels,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      other is OverflowResult &&
+      widgetName == other.widgetName &&
+      fileName == other.fileName &&
+      line == other.line &&
+      column == other.column &&
+      overflowDirection == other.overflowDirection &&
+      overflowPixels == other.overflowPixels;
+
+  @override
+  int get hashCode => Object.hash(
+      widgetName, fileName, line, column, overflowDirection, overflowPixels);
 
   String get formattedMessage {
     final location = line != null ? '$fileName:$line${column != null ? ':$column' : ''}' : fileName;

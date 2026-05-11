@@ -4,6 +4,30 @@ import 'lint_issue.dart';
 import 'lint_result.dart';
 
 class LintAnalyzer {
+  // All patterns compiled once — never inside loops
+  static final _printRegex = RegExp(r'\bprint\s*\(');
+  static final _constWidgetRegex = RegExp(
+      r'(?<!const\s)\b(EdgeInsets|SizedBox|Padding|Text|Icon|Divider|Center|Align)\s*\(');
+  static final _varRegex = RegExp(r'^\s*var\s+\w+\s*=');
+  static final _hardcodedColorRegex = RegExp(r'Color\s*\(\s*0x');
+  static final _hardcodedStringRegex = RegExp(r"\bText\s*\(\s*'[^']{3,}'");
+  static final _catchRegex = RegExp(r'\}\s*catch\s*\(');
+  static final _todoRegex =
+      RegExp(r'//\s*(TODO|FIXME|HACK|XXX)', caseSensitive: false);
+  static final _unawaitedCallRegex = RegExp(r'^\s{2,}[a-z]\w+\(.*\);\s*$');
+  static final _unawaitedNameRegex =
+      RegExp(r'(fetch|load|save|delete|update|post|get|upload|download)\w*\s*\(');
+  static final _listBuilderRegex =
+      RegExp(r'\b(ListView|GridView|PageView)\.builder\s*\(');
+  static final _debugModeRegex = RegExp(r'\bkDebugMode\b|\bkReleaseMode\b');
+  static final _asyncFuncRegex = RegExp(r'async\s*(\{|=>');
+  static final _contextRegex = RegExp(r'\bcontext\b');
+  static final _syncReadStringRegex = RegExp(r'\.readAsStringSync\(');
+  static final _syncReadBytesRegex = RegExp(r'\.readAsBytesSync\(');
+  static final _syncWriteRegex = RegExp(r'\.writeAsStringSync\(');
+  static final _jsonDecodeRegex = RegExp(r'\bjsonDecode\s*\(');
+  static final _jsonEncodeRegex = RegExp(r'\bjsonEncode\s*\(');
+  static final _timerRegex = RegExp(r'Timer(\.|\s*\()');
   /// Scans all .dart files under [directory] and returns a [LintResult].
   static Future<LintResult> analyzeDirectory(String directory) async {
     final dir = Directory(directory);
@@ -65,7 +89,7 @@ class LintAnalyzer {
 
   static void _checkPrintStatement(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    if (RegExp(r'\bprint\s*\(').hasMatch(line) && !_isComment(line)) {
+    if (_printRegex.hasMatch(line) && !_isComment(line)) {
       issues.add(LintIssue(
         file: file,
         line: lineNum,
@@ -80,11 +104,8 @@ class LintAnalyzer {
 
   static void _checkMissingConst(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    // Detects constructors like EdgeInsets/SizedBox/Padding without const
-    final pattern = RegExp(
-        r'(?<!const\s)\b(EdgeInsets|SizedBox|Padding|Text|Icon|Divider|Center|Align)\s*\(');
-    if (pattern.hasMatch(line) && !line.contains('const') && !_isComment(line)) {
-      final match = pattern.firstMatch(line)!;
+    if (_constWidgetRegex.hasMatch(line) && !line.contains('const') && !_isComment(line)) {
+      final match = _constWidgetRegex.firstMatch(line)!;
       issues.add(LintIssue(
         file: file,
         line: lineNum,
@@ -99,7 +120,7 @@ class LintAnalyzer {
 
   static void _checkVarUsage(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    if (RegExp(r'^\s*var\s+\w+\s*=').hasMatch(line) && !_isComment(line)) {
+    if (_varRegex.hasMatch(line) && !_isComment(line)) {
       issues.add(LintIssue(
         file: file,
         line: lineNum,
@@ -114,7 +135,7 @@ class LintAnalyzer {
 
   static void _checkHardcodedColor(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    if (RegExp(r'Color\s*\(\s*0x').hasMatch(line) && !_isComment(line)) {
+    if (_hardcodedColorRegex.hasMatch(line) && !_isComment(line)) {
       issues.add(LintIssue(
         file: file,
         line: lineNum,
@@ -129,8 +150,7 @@ class LintAnalyzer {
 
   static void _checkHardcodedString(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    // Only flag Text('...') with a plain string literal
-    if (RegExp(r"\bText\s*\(\s*'[^']{3,}'").hasMatch(line) && !_isComment(line)) {
+    if (_hardcodedStringRegex.hasMatch(line) && !_isComment(line)) {
       issues.add(LintIssue(
         file: file,
         line: lineNum,
@@ -145,7 +165,7 @@ class LintAnalyzer {
 
   static void _checkEmptyCatch(String line, int lineNum, String file,
       List<LintIssue> issues, List<String> lines, int index) {
-    if (RegExp(r'\}\s*catch\s*\(').hasMatch(line) || line.trimLeft().startsWith('catch (')) {
+    if (_catchRegex.hasMatch(line) || line.trimLeft().startsWith('catch (')) {
       // Look ahead for an empty catch body
       final next = index + 1 < lines.length ? lines[index + 1].trim() : '';
       if (next == '}') {
@@ -164,7 +184,7 @@ class LintAnalyzer {
 
   static void _checkTodoComment(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    if (RegExp(r'//\s*(TODO|FIXME|HACK|XXX)', caseSensitive: false).hasMatch(line)) {
+    if (_todoRegex.hasMatch(line)) {
       issues.add(LintIssue(
         file: file,
         line: lineNum,
@@ -179,14 +199,12 @@ class LintAnalyzer {
 
   static void _checkUnawaitedFuture(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    // Detects Future-returning calls not preceded by await/return/=
-    if (RegExp(r'^\s{2,}[a-z]\w+\(.*\);\s*$').hasMatch(line) &&
+    if (_unawaitedCallRegex.hasMatch(line) &&
         !line.contains('await') &&
         !line.contains('return') &&
         !line.contains('=') &&
         !_isComment(line) &&
-        RegExp(r'(fetch|load|save|delete|update|post|get|upload|download)\w*\s*\(')
-            .hasMatch(line)) {
+        _unawaitedNameRegex.hasMatch(line)) {
       issues.add(LintIssue(
         file: file,
         line: lineNum,
@@ -221,8 +239,7 @@ class LintAnalyzer {
 
   static void _checkMissingKeyWidget(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    if (RegExp(r'\b(ListView|GridView|PageView)\.builder\s*\(').hasMatch(line) &&
-        !_isComment(line)) {
+    if (_listBuilderRegex.hasMatch(line) && !_isComment(line)) {
       // Look ahead 5 lines for itemBuilder key usage
       issues.add(LintIssue(
         file: file,
@@ -267,9 +284,7 @@ class LintAnalyzer {
 
   static void _checkDebugMode(
       String line, int lineNum, String file, List<LintIssue> issues) {
-    if (RegExp(r'\bkDebugMode\b|\bkReleaseMode\b').hasMatch(line) &&
-        line.contains('if') &&
-        !_isComment(line)) {
+    if (_debugModeRegex.hasMatch(line) && line.contains('if') && !_isComment(line)) {
       // Not an error, but flag if debug-only code might leak
       if (line.contains('kDebugMode') && line.contains('!')) {
         issues.add(LintIssue(
@@ -372,7 +387,7 @@ class LintAnalyzer {
     if (source.contains('timer.cancel()') || source.contains('.cancel()')) return;
 
     for (int i = 0; i < lines.length; i++) {
-      if (RegExp(r'Timer(\.|\s*\()').hasMatch(lines[i]) && !_isComment(lines[i])) {
+      if (_timerRegex.hasMatch(lines[i]) && !_isComment(lines[i])) {
         issues.add(LintIssue(
           file: file,
           line: i + 1,
@@ -393,11 +408,11 @@ class LintAnalyzer {
   static void _checkSyncIoOnUiThread(
       List<String> lines, String file, List<LintIssue> issues) {
     final syncPatterns = {
-      RegExp(r'\.readAsStringSync\('): 'File.readAsStringSync() blocks the UI thread',
-      RegExp(r'\.readAsBytesSync\('): 'File.readAsBytesSync() blocks the UI thread',
-      RegExp(r'\.writeAsStringSync\('): 'File.writeAsStringSync() blocks the UI thread',
-      RegExp(r'\bjsonDecode\s*\('): 'jsonDecode() on large payloads can cause jank',
-      RegExp(r'\bjsonEncode\s*\('): 'jsonEncode() on large payloads can cause jank',
+      _syncReadStringRegex: 'File.readAsStringSync() blocks the UI thread',
+      _syncReadBytesRegex: 'File.readAsBytesSync() blocks the UI thread',
+      _syncWriteRegex: 'File.writeAsStringSync() blocks the UI thread',
+      _jsonDecodeRegex: 'jsonDecode() on large payloads can cause jank',
+      _jsonEncodeRegex: 'jsonEncode() on large payloads can cause jank',
     };
 
     for (int i = 0; i < lines.length; i++) {
@@ -429,7 +444,7 @@ class LintAnalyzer {
       final line = lines[i];
       if (_isComment(line)) continue;
 
-      if (RegExp(r'async\s*(\{|=>)').hasMatch(line)) {
+      if (_asyncFuncRegex.hasMatch(line)) {
         inAsyncFunction = true;
         seenAwait = false;
       }
@@ -441,7 +456,7 @@ class LintAnalyzer {
 
       if (seenAwait &&
           inAsyncFunction &&
-          RegExp(r'\bcontext\b').hasMatch(line) &&
+          _contextRegex.hasMatch(line) &&
           !line.contains('mounted') &&
           !line.contains('if (') ) {
         issues.add(LintIssue(
