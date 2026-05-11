@@ -14,8 +14,8 @@ class ErrorCapture {
     RiskDetectorConfig config = const RiskDetectorConfig(),
   }) {
     _config = config;
-
-    FlutterError.onError = (FlutterErrorDetails details) {
+    RiskDetector.configure(config);
+ = (FlutterErrorDetails details) {
       RiskDetector.analyzeFlutterError(details);
     };
 

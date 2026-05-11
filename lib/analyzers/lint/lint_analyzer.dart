@@ -50,6 +50,14 @@ class LintAnalyzer {
       _checkDebugMode(line, lineNum, relativePath, issues);
     }
 
+    // Whole-file checks (need full source)
+    final source = lines.join('\n');
+    _checkControllerNotDisposed(lines, relativePath, issues);
+    _checkStreamSubscriptionLeak(source, relativePath, issues, lines);
+    _checkTimerLeak(source, relativePath, issues, lines);
+    _checkSyncIoOnUiThread(lines, relativePath, issues);
+    _checkBuildContextAcrossAsync(lines, relativePath, issues);
+
     return issues;
   }
 
@@ -285,5 +293,168 @@ class LintAnalyzer {
     final normalized = path.replaceAll('\\', '/');
     final libIndex = normalized.indexOf('lib/');
     return libIndex != -1 ? normalized.substring(libIndex) : normalized.split('/').last;
+  }
+
+  // ─── Memory leak checks ───────────────────────────────────────────────────
+
+  /// Detects controllers declared as fields but not disposed.
+  static void _checkControllerNotDisposed(
+      List<String> lines, String file, List<LintIssue> issues) {
+    const controllers = [
+      'AnimationController',
+      'ScrollController',
+      'TextEditingController',
+      'FocusNode',
+      'PageController',
+      'TabController',
+      'VideoPlayerController',
+    ];
+    final source = lines.join('\n');
+    final hasDispose = source.contains('void dispose()');
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      for (final ctrl in controllers) {
+        // Field declaration: late AnimationController _x or AnimationController? _x
+        if (RegExp('(late\\s+)?$ctrl[?]?\\s+\\w+').hasMatch(line) &&
+            !_isComment(line) &&
+            !line.trimLeft().startsWith('//')) {
+          final ctrlNameMatch = RegExp('$ctrl[?]?\\s+(\\w+)').firstMatch(line);
+          final ctrlName = ctrlNameMatch?.group(1);
+          final isDisposed = ctrlName != null &&
+              hasDispose &&
+              source.contains('$ctrlName.dispose()');
+          if (!isDisposed) {
+            issues.add(LintIssue(
+              file: file,
+              line: i + 1,
+              rule: 'controller_not_disposed',
+              description: '$ctrl declared but .dispose() not found — memory leak risk',
+              suggestion:
+                  'Override dispose() and call ${ctrlName ?? 'controller'}.dispose()',
+              severity: LintSeverity.error,
+              offendingCode: line,
+            ));
+          }
+        }
+      }
+    }
+  }
+
+  /// Detects StreamSubscription fields without a cancel() call.
+  static void _checkStreamSubscriptionLeak(
+      String source, String file, List<LintIssue> issues, List<String> lines) {
+    if (!source.contains('StreamSubscription')) return;
+    final hasCancelInDispose = source.contains('cancel()');
+    if (hasCancelInDispose) return;
+
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].contains('StreamSubscription') && !_isComment(lines[i])) {
+        issues.add(LintIssue(
+          file: file,
+          line: i + 1,
+          rule: 'stream_subscription_leak',
+          description: 'StreamSubscription declared but cancel() not found — memory leak',
+          suggestion:
+              'Store the subscription and call subscription.cancel() inside dispose()',
+          severity: LintSeverity.error,
+          offendingCode: lines[i],
+        ));
+        break; // one report per file is enough
+      }
+    }
+  }
+
+  /// Detects Timer.periodic without a cancel() call.
+  static void _checkTimerLeak(
+      String source, String file, List<LintIssue> issues, List<String> lines) {
+    if (!source.contains('Timer.periodic') && !source.contains('Timer(')) return;
+    if (source.contains('timer.cancel()') || source.contains('.cancel()')) return;
+
+    for (int i = 0; i < lines.length; i++) {
+      if (RegExp(r'Timer(\.|\s*\()').hasMatch(lines[i]) && !_isComment(lines[i])) {
+        issues.add(LintIssue(
+          file: file,
+          line: i + 1,
+          rule: 'timer_not_cancelled',
+          description: 'Timer created but cancel() not found — will fire after dispose',
+          suggestion: 'Store the Timer and call timer.cancel() inside dispose()',
+          severity: LintSeverity.error,
+          offendingCode: lines[i],
+        ));
+        break;
+      }
+    }
+  }
+
+  // ─── Jank / performance checks ────────────────────────────────────────────
+
+  /// Flags synchronous file/JSON operations that block the UI thread.
+  static void _checkSyncIoOnUiThread(
+      List<String> lines, String file, List<LintIssue> issues) {
+    final syncPatterns = {
+      RegExp(r'\.readAsStringSync\('): 'File.readAsStringSync() blocks the UI thread',
+      RegExp(r'\.readAsBytesSync\('): 'File.readAsBytesSync() blocks the UI thread',
+      RegExp(r'\.writeAsStringSync\('): 'File.writeAsStringSync() blocks the UI thread',
+      RegExp(r'\bjsonDecode\s*\('): 'jsonDecode() on large payloads can cause jank',
+      RegExp(r'\bjsonEncode\s*\('): 'jsonEncode() on large payloads can cause jank',
+    };
+
+    for (int i = 0; i < lines.length; i++) {
+      if (_isComment(lines[i])) continue;
+      for (final entry in syncPatterns.entries) {
+        if (entry.key.hasMatch(lines[i])) {
+          issues.add(LintIssue(
+            file: file,
+            line: i + 1,
+            rule: 'sync_io_on_ui_thread',
+            description: entry.value,
+            suggestion:
+                'Move to an isolate using compute() or use the async variant (readAsString, etc.)',
+            severity: LintSeverity.warning,
+            offendingCode: lines[i],
+          ));
+        }
+      }
+    }
+  }
+
+  /// Flags BuildContext used after an await gap (context across async).
+  static void _checkBuildContextAcrossAsync(
+      List<String> lines, String file, List<LintIssue> issues) {
+    bool seenAwait = false;
+    bool inAsyncFunction = false;
+
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (_isComment(line)) continue;
+
+      if (RegExp(r'async\s*(\{|=>)').hasMatch(line)) {
+        inAsyncFunction = true;
+        seenAwait = false;
+      }
+      if (line.contains('}') && inAsyncFunction) {
+        inAsyncFunction = false;
+        seenAwait = false;
+      }
+      if (inAsyncFunction && line.contains('await ')) seenAwait = true;
+
+      if (seenAwait &&
+          inAsyncFunction &&
+          RegExp(r'\bcontext\b').hasMatch(line) &&
+          !line.contains('mounted') &&
+          !line.contains('if (') ) {
+        issues.add(LintIssue(
+          file: file,
+          line: i + 1,
+          rule: 'context_across_async',
+          description: 'BuildContext used after await without mounted check',
+          suggestion:
+              'Add: if (!context.mounted) return; before using context after await',
+          severity: LintSeverity.error,
+          offendingCode: line,
+        ));
+      }
+    }
   }
 }

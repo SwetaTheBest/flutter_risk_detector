@@ -1,8 +1,16 @@
 library;
 
+export 'analyzers/async/async_risk_analyzer.dart';
 export 'analyzers/lint/lint_analyzer.dart';
 export 'analyzers/lint/lint_issue.dart';
 export 'analyzers/lint/lint_result.dart';
+export 'analyzers/overflow/overflow_analyzer.dart';
+export 'analyzers/overflow/overflow_result.dart';
+export 'analyzers/rebuild/rebuild_analyzer.dart';
+export 'analyzers/rebuild/rebuild_result.dart';
 export 'analyzers/rebuild/rebuild_tracker_widget.dart';
 export 'core/config.dart';
 export 'core/error_capture.dart';
+export 'core/logger.dart';
+export 'models/risk_level.dart';
+export 'models/risk_result.dart';
