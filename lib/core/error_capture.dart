@@ -15,7 +15,8 @@ class ErrorCapture {
   }) {
     _config = config;
     RiskDetector.configure(config);
-  (FlutterErrorDetails details) {
+
+    FlutterError.onError = (FlutterErrorDetails details) {
       RiskDetector.analyzeFlutterError(details);
     };
 

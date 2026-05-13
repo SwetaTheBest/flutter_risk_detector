@@ -59,7 +59,7 @@ class HomeScreen extends StatelessWidget {
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: CircleAvatar(
-                backgroundColor: s.color.withOpacity(0.15),
+                backgroundColor: s.color.withValues(alpha: 0.15),
                 child: Icon(s.icon, color: s.color),
               ),
               title: Text(s.title, style: const TextStyle(fontWeight: FontWeight.w600)),

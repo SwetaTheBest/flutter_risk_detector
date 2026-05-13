@@ -11,8 +11,11 @@ class AsyncRiskAnalyzer {
     return _classify(error) != AsyncRiskType.unknown;
   }
 
-  // Keep old name so RiskDetector compiles without changes
+  // Keep old name for backwards compatibility
   static bool isDisposeError(String error) => isAsyncRisk(error);
+
+  /// Publicly exposed so callers can branch on the specific risk type.
+  static AsyncRiskType classify(String error) => _classify(error);
 
   static AsyncRiskType _classify(String error) {
     if (error.contains('setState() called after dispose')) {

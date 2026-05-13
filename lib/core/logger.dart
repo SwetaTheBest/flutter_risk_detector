@@ -9,18 +9,24 @@ class RiskLogger {
 
   static List<String> get logBuffer => List.unmodifiable(_buffer);
 
+  /// Logs an informational message. Not throttled — use for one-off events.
   static void log(String message) {
+    if (!kDebugMode) return;
     _record(message);
     debugPrint(message);
   }
 
+  /// Logs a warning. Throttled to avoid flooding on repeated events.
   static void warning(String message) {
+    if (!kDebugMode) return;
     if (_isThrottled(message)) return;
     _record('⚠ $message');
     debugPrint('⚠ $message');
   }
 
+  /// Logs an error. Throttled to avoid flooding on repeated events.
   static void error(String message) {
+    if (!kDebugMode) return;
     if (_isThrottled(message)) return;
     _record('❌ $message');
     debugPrint('❌ $message');
@@ -32,7 +38,6 @@ class RiskLogger {
   }
 
   static bool _isThrottled(String message) {
-    // Prune stale entries to prevent unbounded map growth
     if (_lastSeen.length > 500) {
       final cutoff = DateTime.now().subtract(_throttle * 10);
       _lastSeen.removeWhere((_, t) => t.isBefore(cutoff));

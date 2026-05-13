@@ -7,7 +7,20 @@ class RiskRebuildTracker extends StatefulWidget {
   final Widget child;
   final String tag;
 
-  const RiskRebuildTracker({required this.child, required this.tag, super.key});
+  /// Override the rebuild count that triggers warnings. Defaults to
+  /// [RebuildAnalyzer.warningThreshold].
+  final int? warningThreshold;
+
+  /// Override the jank frame threshold in milliseconds. Defaults to 16ms.
+  final int jankThresholdMs;
+
+  const RiskRebuildTracker({
+    required this.child,
+    required this.tag,
+    this.warningThreshold,
+    this.jankThresholdMs = 16,
+    super.key,
+  });
 
   @override
   State<RiskRebuildTracker> createState() => _RiskRebuildTrackerState();
@@ -18,9 +31,13 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
   late DateTime _startTime;
   DateTime? _lastReport;
 
-  // Jank detection
-  static const Duration _jankThreshold = Duration(milliseconds: 16);
   static const Duration _reportCooldown = Duration(seconds: 3);
+
+  // Milestones at which we log even below the warning threshold
+  static const _milestones = {5, 10, 20, 50, 100};
+
+  int get _effectiveWarningThreshold =>
+      widget.warningThreshold ?? RebuildAnalyzer.warningThreshold;
 
   @override
   void initState() {
@@ -36,15 +53,14 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
   }
 
   void _onFrameTimings(List<FrameTiming> timings) {
+    final threshold = Duration(milliseconds: widget.jankThresholdMs);
     for (final timing in timings) {
-      final buildDuration = timing.buildDuration;
-      final rasterDuration = timing.rasterDuration;
-      if (buildDuration > _jankThreshold) {
+      if (timing.buildDuration > threshold) {
         debugPrint(
           '🟠 JANK [${widget.tag}] '
-          'build=${buildDuration.inMilliseconds}ms '
-          'raster=${rasterDuration.inMilliseconds}ms '
-          '(>${_jankThreshold.inMilliseconds}ms threshold)',
+          'build=${timing.buildDuration.inMilliseconds}ms '
+          'raster=${timing.rasterDuration.inMilliseconds}ms '
+          '(>${widget.jankThresholdMs}ms threshold)',
         );
       }
     }
@@ -54,9 +70,8 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
   Widget build(BuildContext context) {
     _rebuildCount++;
 
-    if (RebuildAnalyzer.shouldReport(_rebuildCount)) {
+    if (_rebuildCount > _effectiveWarningThreshold) {
       final now = DateTime.now();
-      // Throttle: only report once per cooldown window
       if (_lastReport == null || now.difference(_lastReport!) >= _reportCooldown) {
         _lastReport = now;
         final result = RebuildAnalyzer.analyze(
@@ -66,8 +81,9 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
         );
         debugPrint(result.formattedMessage);
       }
-    } else {
-      debugPrint('🔄 ${widget.tag} rebuilt $_rebuildCount times');
+    } else if (_milestones.contains(_rebuildCount)) {
+      // Log only at milestones — not on every single rebuild
+      debugPrint('🔄 [${widget.tag}] rebuild #$_rebuildCount');
     }
 
     return widget.child;

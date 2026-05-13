@@ -11,8 +11,14 @@ enum _RebuildCause {
 }
 
 class RebuildAnalyzer {
-  static const int stormThreshold = 20;
-  static const int warningThreshold = 10;
+  static int stormThreshold = 20;
+  static int warningThreshold = 10;
+
+  /// Called by ErrorCapture to apply config thresholds.
+  static void configure(int warningAt, int stormAt) {
+    warningThreshold = warningAt;
+    stormThreshold = stormAt;
+  }
 
   static bool shouldReport(int count) => count > warningThreshold;
 
@@ -98,6 +104,8 @@ class RebuildAnalyzer {
     ],
   };
 
-  static List<String> _suggestionsFor(Set<_RebuildCause> causes) =>
-      causes.expand((c) => _causeToSuggestions[c] ?? []).toSet().toList();
+  static List<String> _suggestionsFor(Set<_RebuildCause> causes) => causes
+      .expand((c) => _causeToSuggestions[c] ?? const <String>[])
+      .toSet()
+      .toList();
 }

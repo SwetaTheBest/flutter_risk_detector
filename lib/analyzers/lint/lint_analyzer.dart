@@ -28,6 +28,20 @@ class LintAnalyzer {
   static final _jsonDecodeRegex = RegExp(r'\bjsonDecode\s*\(');
   static final _jsonEncodeRegex = RegExp(r'\bjsonEncode\s*\(');
   static final _timerRegex = RegExp(r'Timer(\.|\s*\()');
+
+  // Per-controller patterns — compiled once, not inside the nested loop
+  static final _controllerDeclRegexes = <String, RegExp>{
+    for (final c in [
+      'AnimationController',
+      'ScrollController',
+      'TextEditingController',
+      'FocusNode',
+      'PageController',
+      'TabController',
+      'VideoPlayerController',
+    ])
+      c: RegExp('(late\\s+)?${c}[?]?\\s+(\\w+)'),
+  };
   /// Scans all .dart files under [directory] and returns a [LintResult].
   static Future<LintResult> analyzeDirectory(String directory) async {
     final dir = Directory(directory);
@@ -315,42 +329,35 @@ class LintAnalyzer {
   /// Detects controllers declared as fields but not disposed.
   static void _checkControllerNotDisposed(
       List<String> lines, String file, List<LintIssue> issues) {
-    const controllers = [
-      'AnimationController',
-      'ScrollController',
-      'TextEditingController',
-      'FocusNode',
-      'PageController',
-      'TabController',
-      'VideoPlayerController',
-    ];
     final source = lines.join('\n');
     final hasDispose = source.contains('void dispose()');
 
     for (int i = 0; i < lines.length; i++) {
       final line = lines[i];
-      for (final ctrl in controllers) {
-        // Field declaration: late AnimationController _x or AnimationController? _x
-        if (RegExp('(late\\s+)?$ctrl[?]?\\s+\\w+').hasMatch(line) &&
-            !_isComment(line) &&
-            !line.trimLeft().startsWith('//')) {
-          final ctrlNameMatch = RegExp('$ctrl[?]?\\s+(\\w+)').firstMatch(line);
-          final ctrlName = ctrlNameMatch?.group(1);
-          final isDisposed = ctrlName != null &&
-              hasDispose &&
-              source.contains('$ctrlName.dispose()');
-          if (!isDisposed) {
-            issues.add(LintIssue(
-              file: file,
-              line: i + 1,
-              rule: 'controller_not_disposed',
-              description: '$ctrl declared but .dispose() not found — memory leak risk',
-              suggestion:
-                  'Override dispose() and call ${ctrlName ?? 'controller'}.dispose()',
-              severity: LintSeverity.error,
-              offendingCode: line,
-            ));
-          }
+      if (_isComment(line)) continue;
+
+      for (final entry in _controllerDeclRegexes.entries) {
+        final ctrl = entry.key;
+        final regex = entry.value;
+        final match = regex.firstMatch(line);
+        if (match == null) continue;
+
+        final ctrlName = match.group(2);
+        final isDisposed = ctrlName != null &&
+            hasDispose &&
+            source.contains('$ctrlName.dispose()');
+
+        if (!isDisposed) {
+          issues.add(LintIssue(
+            file: file,
+            line: i + 1,
+            rule: 'controller_not_disposed',
+            description: '$ctrl declared but .dispose() not found — memory leak risk',
+            suggestion:
+                'Override dispose() and call ${ctrlName ?? 'controller'}.dispose()',
+            severity: LintSeverity.error,
+            offendingCode: line,
+          ));
         }
       }
     }
