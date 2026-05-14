@@ -6,16 +6,17 @@ class RebuildResult {
   final Duration window;
   final List<String> possibleCauses;
   final List<String> suggestions;
+  /// Snapshotted at construction so it is stable even if thresholds are
+  /// reconfigured later via [RebuildAnalyzer.configure].
+  final bool isStorm;
 
-  const RebuildResult({
+  RebuildResult({
     required this.tag,
     required this.rebuildCount,
     required this.window,
     required this.possibleCauses,
     required this.suggestions,
-  });
-
-  bool get isStorm => rebuildCount > RebuildAnalyzer.stormThreshold;
+  }) : isStorm = rebuildCount > RebuildAnalyzer.stormThreshold;
 
   double get rebuildsPerSecond =>
       rebuildCount / window.inSeconds.clamp(1, 9999);

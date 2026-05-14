@@ -20,8 +20,7 @@ class LintAnalyzer {
   static final _listBuilderRegex =
       RegExp(r'\b(ListView|GridView|PageView)\.builder\s*\(');
   static final _debugModeRegex = RegExp(r'\bkDebugMode\b|\bkReleaseMode\b');
-  static final _asyncFuncRegex = RegExp(r'async\s*(\{|=>');
-  static final _contextRegex = RegExp(r'\bcontext\b');
+  static final _asyncFuncRegex = RegExp(r'async\s*(\{|=>)');  static final _contextRegex = RegExp(r'\bcontext\b');
   static final _syncReadStringRegex = RegExp(r'\.readAsStringSync\(');
   static final _syncReadBytesRegex = RegExp(r'\.readAsBytesSync\(');
   static final _syncWriteRegex = RegExp(r'\.writeAsStringSync\(');
@@ -29,7 +28,9 @@ class LintAnalyzer {
   static final _jsonEncodeRegex = RegExp(r'\bjsonEncode\s*\(');
   static final _timerRegex = RegExp(r'Timer(\.|\s*\()');
 
-  // Per-controller patterns — compiled once, not inside the nested loop
+  // Per-controller patterns — compiled once, not inside the nested loop.
+  // Anchored to field declarations: optional late/final, optional type args,
+  // followed by an identifier that is NOT inside a parameter list.
   static final _controllerDeclRegexes = <String, RegExp>{
     for (final c in [
       'AnimationController',
@@ -40,32 +41,37 @@ class LintAnalyzer {
       'TabController',
       'VideoPlayerController',
     ])
-      c: RegExp('(late\\s+)?${c}[?]?\\s+(\\w+)'),
+      c: RegExp(r'^\s*(?:late\s+)?(?:final\s+)?' + c + r'[?]?\s+(\w+)'),
   };
   /// Scans all .dart files under [directory] and returns a [LintResult].
   static Future<LintResult> analyzeDirectory(String directory) async {
     final dir = Directory(directory);
     if (!dir.existsSync()) return LintResult([]);
-
     final issues = <LintIssue>[];
-    final dartFiles = dir
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart') && !f.path.contains('.g.dart'));
-
-    for (final file in dartFiles) {
-      issues.addAll(await analyzeFile(file.path));
+    try {
+      final dartFiles = dir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.dart') && !f.path.contains('.g.dart'));
+      for (final file in dartFiles) {
+        issues.addAll(await analyzeFile(file.path));
+      }
+    } on FileSystemException {
+      // Permission denied or other I/O error — return what we have so far
     }
-
     return LintResult(issues);
   }
 
   /// Scans a single file and returns all lint issues found.
   static Future<List<LintIssue>> analyzeFile(String filePath) async {
     final file = File(filePath);
-    if (!file.existsSync()) return [];
-
-    final lines = await file.readAsLines();
+    if (!file.existsSync()) return const [];
+    List<String> lines;
+    try {
+      lines = await file.readAsLines();
+    } on FileSystemException {
+      return const [];
+    }
     final issues = <LintIssue>[];
     final relativePath = _relativePath(filePath);
 
@@ -342,7 +348,7 @@ class LintAnalyzer {
         final match = regex.firstMatch(line);
         if (match == null) continue;
 
-        final ctrlName = match.group(2);
+        final ctrlName = match.group(1);
         final isDisposed = ctrlName != null &&
             hasDispose &&
             source.contains('$ctrlName.dispose()');

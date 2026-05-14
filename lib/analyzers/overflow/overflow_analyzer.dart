@@ -5,10 +5,12 @@ import 'overflow_result.dart';
 class OverflowAnalyzer {
   // Compiled once at class load — not on every call
   static final _locationRegex = RegExp(r'(lib\/[^\s]+\.dart):(\d+):(\d+)');
-  static final _pixelsRegex = RegExp(r'overflowed by ([\.\d]+) pixel');
+  static final _pixelsRegex = RegExp(r'overflowed by ([.\d]+) pixel');
   static final _widgetRegex = RegExp(r'(Row|Column|Flex|ListView|Stack)');
   static final _parentContextRegex = RegExp(r'in ([A-Z]\w+)');
   static final _parentInfoRegex = RegExp(r'([A-Z]\w+)\(');
+  static final _directionRegex =
+      RegExp(r'on the (top|bottom|left|right) side', caseSensitive: false);
 
   static bool isOverflow(String error) =>
       error.contains('RenderFlex overflowed');
@@ -66,10 +68,10 @@ class OverflowAnalyzer {
   }
 
   static String? _extractOverflowDirection(String error) {
-    if (error.contains('bottom')) return 'bottom';
-    if (error.contains('top')) return 'top';
-    if (error.contains('right')) return 'right';
-    if (error.contains('left')) return 'left';
+    // Use the exact Flutter phrase "on the X side" to avoid substring false-positives
+    final match = _directionRegex.firstMatch(error);
+    if (match != null) return match.group(1)!.toLowerCase();
+    // Fallback for older Flutter versions that use axis names
     if (error.contains('vertical')) return 'bottom';
     if (error.contains('horizontal')) return 'right';
     return null;
