@@ -20,7 +20,8 @@ class _MemoryLeakScreenState extends State<MemoryLeakScreen>
   // ❌ Memory leak: TextEditingController never disposed
   final TextEditingController _textController = TextEditingController();
 
-  // ❌ Memory leak: ScrollController never disposed
+  // ❌ Memory leak: ScrollController never disposed (intentional demo)
+  // ignore: unused_field
   final ScrollController _scrollController = ScrollController();
 
   // ✅ Correct: FocusNode that IS disposed

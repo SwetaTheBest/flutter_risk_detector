@@ -32,8 +32,8 @@ class _LintTestScreenState extends State<LintTestScreen> {
   // ❌ [context_across_async]: context used after await without mounted check
   Future<void> _triggerContextAcrossAsync() async {
     await Future.delayed(const Duration(seconds: 1));
-    // Intentional: no mounted check before using context after await
-    ScaffoldMessenger.of(context).showSnackBar( // ← risk: context used after await
+    // ignore: use_build_context_synchronously
+    ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Context used after await — no mounted check!')),
     );
   }
@@ -41,7 +41,8 @@ class _LintTestScreenState extends State<LintTestScreen> {
   // ✅ Correct version with mounted check
   Future<void> _safeContextUsage() async {
     await Future.delayed(const Duration(seconds: 1));
-    if (!context.mounted) return; // correct guard
+    if (!context.mounted) return;
+    // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Safe: mounted check passed ✓')),
     );
