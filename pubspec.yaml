@@ -6,6 +6,7 @@ version: 1.0.0
 homepage: https://github.com/SwetaTheBest/flutter_risk_detector
 repository: https://github.com/SwetaTheBest/flutter_risk_detector
 issue_tracker: https://github.com/SwetaTheBest/flutter_risk_detector/issues
+license: MIT
 documentation: https://pub.dev/documentation/flutter_risk_detector/latest/
 topics:
   - flutter

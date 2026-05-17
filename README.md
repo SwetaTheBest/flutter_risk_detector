@@ -1,12 +1,23 @@
 # flutter_risk_detector
 
-[![pub version](https://img.shields.io/pub/v/flutter_risk_detector.svg)](https://pub.dev/packages/flutter_risk_detector)
+[![pub package](https://img.shields.io/pub/v/flutter_risk_detector.svg)](https://pub.dev/packages/flutter_risk_detector)
+[![CI](https://github.com/SwetaTheBest/flutter_risk_detector/actions/workflows/flutter_ci.yml/badge.svg)](https://github.com/SwetaTheBest/flutter_risk_detector/actions/workflows/flutter_ci.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/SwetaTheBest/flutter_risk_detector/blob/main/LICENSE)
 [![flutter](https://img.shields.io/badge/flutter-%3E%3D3.10.0-blue.svg)](https://flutter.dev)
 
 A Flutter debugging toolkit for surfacing common development-time risks: **RenderFlex overflows**, **rebuild storms**, **jank**, **async lifecycle errors**, and lightweight static lint findings.
 
 Runtime detection is debug-only. Static lint scanning runs only when `dart:io` is available; on Flutter Web the package remains importable and the lint analyzer returns an empty result.
+
+---
+
+## ✨ Why flutter_risk_detector?
+
+Flutter apps often suffer from hidden rebuild storms, async lifecycle bugs,
+layout overflows, and frame jank that are difficult to spot early.
+
+`flutter_risk_detector` helps surface these issues automatically during development
+with lightweight runtime diagnostics and static analysis.
 
 ---
 
@@ -76,6 +87,10 @@ flutter test
 ```
 
 This package is designed for development-time diagnostics, so all runtime checks are active only in debug mode.
+
+## 📡 Continuous integration
+
+A GitHub Actions workflow is included in `.github/workflows/flutter_ci.yml` to verify formatting, static analysis, tests, and publish readiness via `flutter pub publish --dry-run`.
 
 ---
 
