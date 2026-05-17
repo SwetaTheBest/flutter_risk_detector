@@ -78,6 +78,23 @@ flutter run
 
 The example demonstrates overflow detection, rebuild tracking, async risk reporting, and lint scanning in a debug build.
 
+## 🎬 Demo
+
+![Demo](assets/gifs/demo_flutter_risk.gif)
+
+## 📸 Screenshots
+
+### Overflow Detection
+
+![Overflow](assets/screenshots/example_two.png)
+![Overflow](assets/screenshots/Screenshot-overflow.png)
+
+### Rebuild Storm Detection
+
+![Rebuild](assets/screenshots/example_four.png)
+
+![Rebuild](assets/screenshots/Screenshot-jank.png)
+
 ## ✅ Testing
 
 Run package tests from the package root:
