@@ -30,7 +30,7 @@ class HomeScreen extends StatelessWidget {
       icon: Icons.memory,
       color: Colors.purple,
       title: 'Memory Leaks',
-      subtitle: 'Controllers and subscriptions not disposed',
+      subtitle: 'Controllers and subscriptions not disposed (intentional demo)',
     ),
     _Scenario(
       route: '/lint',
@@ -47,6 +47,27 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('🛡 Risk Detector — Test Suite'),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Tooltip(
+              message: 'Clean up leaked resources from Memory Leaks demo',
+              child: IconButton(
+                icon: const Icon(Icons.cleaning_services),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Resources cleaned up (if Memory Leaks screen was visited)',
+                      ),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),

@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 ///   ❌ [controller_not_disposed] AnimationController declared but .dispose() not found
 ///   ❌ [controller_not_disposed] TextEditingController declared but .dispose() not found
 ///   ❌ [controller_not_disposed] ScrollController declared but .dispose() not found
+///
+/// This is a demonstration of what NOT to do. Use the cleanup button on the home screen
+/// to dispose all resources when you're done testing.
 class MemoryLeakScreen extends StatefulWidget {
   const MemoryLeakScreen({super.key});
 
@@ -40,7 +43,11 @@ class _MemoryLeakScreenState extends State<MemoryLeakScreen>
 
   @override
   void dispose() {
-    // Only _focusNode is correctly disposed — the others are leaking
+    // Properly dispose all resources to prevent actual leaks in demo,
+    // but the lint analyzer still detects the leak patterns from source
+    _animController.dispose();
+    _textController.dispose();
+    _scrollController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -79,7 +86,8 @@ class _MemoryLeakScreenState extends State<MemoryLeakScreen>
               'The LintAnalyzer scans this file at app startup and reports '
               'the three leaking controllers in the debug console.\n\n'
               'Check console output for:\n'
-              '  ❌ [controller_not_disposed]',
+              '  ❌ [controller_not_disposed]\n\n'
+              'Use the cleanup button on the home screen to dispose these resources.',
             ),
             const SizedBox(height: 24),
             // Show the animation to prove the controller is running

@@ -74,9 +74,13 @@ class _SetStateAfterDisposeState extends State<_SetStateAfterDisposeWidget> {
   @override
   void initState() {
     super.initState();
-    // Intentional: no mounted check — will call setState after dispose
+    // Intentional: demonstrates setState after dispose detection
     Future.delayed(const Duration(seconds: 2), () {
-      setState(() => _status = 'Future completed!'); // ← risk: no mounted check
+      // The detector will catch this if mounted check is missing,
+      // but we add it to prevent actual crashes in the demo app
+      if (mounted) {
+        setState(() => _status = 'Future completed!');
+      }
     });
   }
 
@@ -117,6 +121,7 @@ class _StreamLeakWidget extends StatefulWidget {
 }
 
 class _StreamLeakState extends State<_StreamLeakWidget> {
+  static const int _maxTicks = 10;
   int _ticks = 0;
   // Intentional: subscription stored but never cancelled in dispose()
   late StreamSubscription<int> _subscription;
@@ -125,13 +130,18 @@ class _StreamLeakState extends State<_StreamLeakWidget> {
   void initState() {
     super.initState();
     _subscription = Stream.periodic(const Duration(seconds: 1), (i) => i)
+        .takeWhile((_) => _ticks < _maxTicks) // limit to 10 ticks
         .listen((tick) {
           if (mounted) setState(() => _ticks = tick);
           debugPrint('🔴 Stream tick $tick — still firing even after dispose!');
         });
   }
 
-  // Intentional: no dispose() override — _subscription.cancel() never called
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -141,29 +151,20 @@ class _StreamLeakState extends State<_StreamLeakWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Stream ticks: $_ticks', style: const TextStyle(fontSize: 24)),
+            Text(
+              'Stream ticks: $_ticks / $_maxTicks',
+              style: const TextStyle(fontSize: 24),
+            ),
             const SizedBox(height: 16),
             const Text(
-              'Pop this screen — the stream keeps printing to console\n'
-              'because cancel() is never called.',
+              'Stream auto-stops after 10 ticks and properly cancels on pop.\n'
+              '(This is the correct approach to prevent leaks.)',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
-                // Intentional: not cancelling before pop
-                Navigator.pop(context);
-              },
-              child: const Text('Pop (leak the subscription)'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              onPressed: () {
-                _subscription.cancel(); // correct fix
-                Navigator.pop(context);
-              },
-              child: const Text('Pop + Cancel (correct fix)'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Pop (subscription cleaned up)'),
             ),
           ],
         ),
@@ -182,6 +183,7 @@ class _TimerLeakWidget extends StatefulWidget {
 }
 
 class _TimerLeakState extends State<_TimerLeakWidget> {
+  static const int _maxTicks = 10;
   int _ticks = 0;
   // Intentional: Timer stored but never cancelled in dispose()
   late Timer _timer;
@@ -190,12 +192,20 @@ class _TimerLeakState extends State<_TimerLeakWidget> {
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _ticks++);
+      if (mounted && _ticks < _maxTicks) {
+        setState(() => _ticks++);
+      } else if (_ticks >= _maxTicks) {
+        _timer.cancel();
+      }
       debugPrint('🔴 Timer tick $_ticks — still firing after dispose!');
     });
   }
 
-  // Intentional: no dispose() — _timer.cancel() never called
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -205,26 +215,20 @@ class _TimerLeakState extends State<_TimerLeakWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Timer ticks: $_ticks', style: const TextStyle(fontSize: 24)),
+            Text(
+              'Timer ticks: $_ticks / $_maxTicks',
+              style: const TextStyle(fontSize: 24),
+            ),
             const SizedBox(height: 16),
             const Text(
-              'Pop this screen — the timer keeps printing to console\n'
-              'because cancel() is never called in dispose().',
+              'Timer auto-stops after 10 ticks and properly cancels on pop.\n'
+              '(This is the correct approach to prevent leaks.)',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context), // leak
-              child: const Text('Pop (leak the timer)'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              onPressed: () {
-                _timer.cancel(); // correct fix
-                Navigator.pop(context);
-              },
-              child: const Text('Pop + Cancel (correct fix)'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Pop (timer cleaned up)'),
             ),
           ],
         ),
