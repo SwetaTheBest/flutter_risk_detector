@@ -91,7 +91,7 @@ The example demonstrates overflow detection, rebuild tracking, async risk report
   <img src="assets/screenshots/example_two.png" width="400"/>
 </p>
 <p align="center">
-  <img src="assets/screenshots/Screenshot-overflow.png" width="400"/>
+  <img src="assets/screenshots/Screenshot-overflow.png" width="700"/>
 </p>
 
 ### Rebuild Storm Detection
@@ -100,7 +100,7 @@ The example demonstrates overflow detection, rebuild tracking, async risk report
   <img src="assets/screenshots/example_four.png" width="400"/>
 </p>
 <p align="center">
-  <img src="assets/screenshots/Screenshot-jank.png" width="400"/>
+  <img src="assets/screenshots/Screenshot-jank.png" width="700"/>
 </p>
 
 ## ✅ Testing
