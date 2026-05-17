@@ -20,11 +20,17 @@ class _LintTestScreenState extends State<LintTestScreen> {
   // ⚠ [sync_io_on_ui_thread]: jsonDecode called synchronously on UI thread
   void _triggerSyncJsonDecode() {
     final largeJson = jsonEncode(
-      List.generate(10000, (i) => {'id': i, 'name': 'item_$i', 'value': i * 3.14}),
+      List.generate(
+        10000,
+        (i) => {'id': i, 'name': 'item_$i', 'value': i * 3.14},
+      ),
     );
     // Intentional: synchronous decode on UI thread — can cause jank
     final decoded = jsonDecode(largeJson) as List;
-    setState(() => _output = 'Decoded ${decoded.length} items synchronously on UI thread');
+    setState(
+      () => _output =
+          'Decoded ${decoded.length} items synchronously on UI thread',
+    );
     // ⚠ [avoid_print]: print() instead of debugPrint()
     print('Decoded ${decoded.length} items'); // ignore: avoid_print
   }
@@ -34,7 +40,9 @@ class _LintTestScreenState extends State<LintTestScreen> {
     await Future.delayed(const Duration(seconds: 1));
     // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Context used after await — no mounted check!')),
+      const SnackBar(
+        content: Text('Context used after await — no mounted check!'),
+      ),
     );
   }
 
@@ -70,8 +78,10 @@ class _LintTestScreenState extends State<LintTestScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               color: Colors.orange.shade50,
-              child: Text(_output,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+              child: Text(
+                _output,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
             ),
           ],
           const SizedBox(height: 16),
@@ -105,8 +115,10 @@ class _LintTestScreenState extends State<LintTestScreen> {
                 'print() is called inside _triggerSyncJsonDecode(). '
                 'In release builds this leaks internal data to device logs.',
             buttonLabel: 'See print() in source (line 28)',
-            onPressed: () => setState(() =>
-                _output = 'See line 28 in lint_test_screen.dart — print() call'),
+            onPressed: () => setState(
+              () => _output =
+                  'See line 28 in lint_test_screen.dart — print() call',
+            ),
           ),
         ],
       ),
@@ -145,21 +157,26 @@ class _LintTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(severity,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isRisk ? Colors.red.shade800 : Colors.green.shade800)),
+          Text(
+            severity,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isRisk ? Colors.red.shade800 : Colors.green.shade800,
+            ),
+          ),
           const SizedBox(height: 2),
-          Text('[$rule]',
-              style: const TextStyle(
-                  fontFamily: 'monospace', fontSize: 12, color: Colors.black54)),
+          Text(
+            '[$rule]',
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 12,
+              color: Colors.black54,
+            ),
+          ),
           const SizedBox(height: 6),
           Text(description, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: onPressed,
-            child: Text(buttonLabel),
-          ),
+          ElevatedButton(onPressed: onPressed, child: Text(buttonLabel)),
         ],
       ),
     );

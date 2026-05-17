@@ -134,10 +134,11 @@ class _LeakRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(detail,
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  label,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(detail, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),

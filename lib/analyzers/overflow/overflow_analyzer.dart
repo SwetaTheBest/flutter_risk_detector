@@ -20,7 +20,8 @@ class OverflowAnalyzer {
     final stack = details.stack?.toString() ?? '';
     final context = details.context?.toString() ?? '';
     final informationCollector = details.informationCollector?.call();
-    final widgetInfo = informationCollector?.map((e) => e.toStringDeep()).join('\n') ?? '';
+    final widgetInfo =
+        informationCollector?.map((e) => e.toStringDeep()).join('\n') ?? '';
 
     final location = _extractLocation(stack);
     final parentWidget = _extractParentWidget(context, widgetInfo);
@@ -32,7 +33,9 @@ class OverflowAnalyzer {
       widgetName: widgetName,
       fileName: location?['file'] ?? 'Unknown File',
       line: location?['line'] != null ? int.tryParse(location!['line']!) : null,
-      column: location?['column'] != null ? int.tryParse(location!['column']!) : null,
+      column: location?['column'] != null
+          ? int.tryParse(location!['column']!)
+          : null,
       parentWidget: parentWidget,
       overflowDirection: direction,
       overflowPixels: pixels,
@@ -40,7 +43,8 @@ class OverflowAnalyzer {
     );
   }
 
-  static String _extractWidgetName(String error, String context, String widgetInfo) {
+  static String _extractWidgetName(
+      String error, String context, String widgetInfo) {
     final widgetMatch = _widgetRegex.firstMatch(widgetInfo);
     if (widgetMatch != null) return widgetMatch.group(0)!;
     final contextMatch = _widgetRegex.firstMatch(context);
@@ -55,7 +59,11 @@ class OverflowAnalyzer {
       final file = match.group(1)!;
       // Skip generated and framework files
       if (!file.contains('.g.dart') && !file.contains('flutter/')) {
-        return {'file': file, 'line': match.group(2)!, 'column': match.group(3)!};
+        return {
+          'file': file,
+          'line': match.group(2)!,
+          'column': match.group(3)!
+        };
       }
     }
     return null;

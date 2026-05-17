@@ -34,7 +34,8 @@ class _OverflowTestScreenState extends State<OverflowTestScreen> {
               ElevatedButton.icon(
                 icon: const Icon(Icons.play_arrow),
                 label: const Text('Trigger Horizontal Overflow'),
-                onPressed: () => setState(() => _showHorizontal = !_showHorizontal),
+                onPressed: () =>
+                    setState(() => _showHorizontal = !_showHorizontal),
               ),
               if (_showHorizontal) ...[
                 const SizedBox(height: 12),
@@ -74,7 +75,9 @@ class _OverflowTestScreenState extends State<OverflowTestScreen> {
                       8,
                       (i) => Container(
                         height: 40,
-                        color: i.isEven ? Colors.red.shade200 : Colors.red.shade400,
+                        color: i.isEven
+                            ? Colors.red.shade200
+                            : Colors.red.shade400,
                         alignment: Alignment.center,
                         child: Text('Item $i — overflows ↓'),
                       ),
@@ -130,11 +133,12 @@ class _SectionHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$icon $label',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold)),
+        Text(
+          '$icon $label',
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 4),
         Text(description, style: Theme.of(context).textTheme.bodySmall),
       ],

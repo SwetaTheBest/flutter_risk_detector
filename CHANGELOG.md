@@ -4,7 +4,7 @@
 
 **Overflow Detection**
 - Detects `RenderFlex overflowed` errors via `FlutterError.onError`
-- Reports exact widget name, parent widget, file path, line, column, overflow direction, and pixel amount
+- Reports best-effort widget name, parent widget, file path, line, column, overflow direction, and pixel amount
 - Direction-specific fix suggestions (horizontal vs vertical)
 - Skips generated `.g.dart` and framework stack frames to surface user code location
 
@@ -25,6 +25,7 @@
 **Async Risk Detection**
 - Catches `setState() called after dispose` via `FlutterError.onError`
 - Catches unhandled async errors via `PlatformDispatcher.onError`
+- Preserves and delegates to existing Flutter and platform error handlers
 - Classifies 4 risk types: `setStateAfterDispose`, `streamNotCancelled`, `timerNotCancelled`, `futureAfterDispose`
 - Each type produces a specific cause + fix message
 - Public `classify()` method for custom handling
@@ -37,6 +38,7 @@
 - `filtered(LintSeverity)` to narrow results by minimum severity
 - Graceful handling of permission errors and missing files via `FileSystemException` catch
 - Skips `.g.dart` generated files automatically
+- Default import remains safe on non-IO platforms through a no-op analyzer stub
 
 **Configuration**
 - `RiskDetectorConfig` with `copyWith`, `==`, and `hashCode`

@@ -1,10 +1,20 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'rebuild_analyzer.dart';
 
+/// Wraps a subtree and logs debug-only rebuild and frame timing diagnostics.
+///
+/// The tracker has no runtime behavior in release builds. In debug builds it
+/// counts rebuilds for the wrapped subtree and reports when counts exceed the
+/// configured warning threshold. It also listens to frame timings to surface
+/// jank above [jankThresholdMs].
 class RiskRebuildTracker extends StatefulWidget {
+  /// Widget subtree to monitor.
   final Widget child;
+
+  /// Label used in rebuild and jank log messages.
   final String tag;
 
   /// Override the rebuild count that triggers warnings. Defaults to
@@ -43,16 +53,22 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
   void initState() {
     super.initState();
     _startTime = DateTime.now();
-    SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
+    if (kDebugMode) {
+      SchedulerBinding.instance.addTimingsCallback(_onFrameTimings);
+    }
   }
 
   @override
   void dispose() {
-    SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+    if (kDebugMode) {
+      SchedulerBinding.instance.removeTimingsCallback(_onFrameTimings);
+    }
     super.dispose();
   }
 
   void _onFrameTimings(List<FrameTiming> timings) {
+    if (!kDebugMode) return;
+
     final threshold = Duration(milliseconds: widget.jankThresholdMs);
     for (final timing in timings) {
       if (timing.buildDuration > threshold) {
@@ -68,11 +84,14 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
 
   @override
   Widget build(BuildContext context) {
+    if (!kDebugMode) return widget.child;
+
     _rebuildCount++;
 
     if (_rebuildCount > _effectiveWarningThreshold) {
       final now = DateTime.now();
-      if (_lastReport == null || now.difference(_lastReport!) >= _reportCooldown) {
+      if (_lastReport == null ||
+          now.difference(_lastReport!) >= _reportCooldown) {
         _lastReport = now;
         final result = RebuildAnalyzer.analyze(
           tag: widget.tag,

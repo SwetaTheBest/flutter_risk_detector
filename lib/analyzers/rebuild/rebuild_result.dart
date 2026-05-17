@@ -6,6 +6,7 @@ class RebuildResult {
   final Duration window;
   final List<String> possibleCauses;
   final List<String> suggestions;
+
   /// Snapshotted at construction so it is stable even if thresholds are
   /// reconfigured later via [RebuildAnalyzer.configure].
   final bool isStorm;

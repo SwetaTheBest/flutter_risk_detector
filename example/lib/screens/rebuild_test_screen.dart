@@ -58,12 +58,15 @@ class _RebuildTestScreenState extends State<RebuildTestScreen> {
                 color: Colors.blue.shade50,
                 icon: Icons.refresh,
                 title: 'Rebuild Storm Test',
-                body: 'Fires 30 setState() calls at 60fps cadence. '
+                body:
+                    'Fires 30 setState() calls at 60fps cadence. '
                     'Watch the console for 🔴 REBUILD STORM report with causes and suggestions.',
               ),
               const SizedBox(height: 12),
-              Text('Rebuild counter: $_counter',
-                  style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                'Rebuild counter: $_counter',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 icon: _stormRunning
@@ -73,7 +76,9 @@ class _RebuildTestScreenState extends State<RebuildTestScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.bolt),
-                label: Text(_stormRunning ? 'Storm running…' : 'Trigger Rebuild Storm'),
+                label: Text(
+                  _stormRunning ? 'Storm running…' : 'Trigger Rebuild Storm',
+                ),
                 onPressed: _stormRunning ? null : _triggerRebuildStorm,
               ),
               const Divider(height: 40),
@@ -81,22 +86,26 @@ class _RebuildTestScreenState extends State<RebuildTestScreen> {
                 color: Colors.orange.shade50,
                 icon: Icons.slow_motion_video,
                 title: 'Jank Test',
-                body: 'Runs 50M iterations synchronously on the UI thread. '
+                body:
+                    'Runs 50M iterations synchronously on the UI thread. '
                     'The frame timing callback in RiskRebuildTracker will log build duration > 16ms.',
               ),
               const SizedBox(height: 12),
               if (_jankResult.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(_jankResult,
-                      style: const TextStyle(fontFamily: 'monospace')),
+                  child: Text(
+                    _jankResult,
+                    style: const TextStyle(fontFamily: 'monospace'),
+                  ),
                 ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.warning_amber),
                 label: const Text('Trigger Jank (Heavy Sync Work)'),
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade700,
-                    foregroundColor: Colors.white),
+                  backgroundColor: Colors.orange.shade700,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: _triggerJank,
               ),
             ],
@@ -137,11 +146,12 @@ class _InfoCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 4),
-                Text(body,
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(body, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),

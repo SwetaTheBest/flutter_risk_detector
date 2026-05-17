@@ -43,7 +43,8 @@ class RiskDetector {
 
     final errorString = error.toString();
 
-    if (_config.detectAsyncRisks && AsyncRiskAnalyzer.isAsyncRisk(errorString)) {
+    if (_config.detectAsyncRisks &&
+        AsyncRiskAnalyzer.isAsyncRisk(errorString)) {
       RiskLogger.warning(AsyncRiskAnalyzer.suggestion(errorString));
       return;
     }

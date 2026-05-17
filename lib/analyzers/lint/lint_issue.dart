@@ -56,7 +56,8 @@ class LintIssue {
       };
 
   String get formattedMessage {
-    final code = offendingCode != null ? '\n  Code : ${offendingCode!.trim()}' : '';
+    final code =
+        offendingCode != null ? '\n  Code : ${offendingCode!.trim()}' : '';
     return '$icon [$rule] $file:$line$code\n  Issue: $description\n  Fix  : $suggestion';
   }
 }

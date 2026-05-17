@@ -1,16 +1,18 @@
-# example
+# flutter_risk_detector example
 
-A new Flutter project.
+This example app demonstrates the package's development-time diagnostics:
 
-## Getting Started
+- RenderFlex overflow detection
+- rebuild storm and jank tracking
+- async lifecycle risks such as `setState()` after dispose
+- static lint findings for common code-quality and lifecycle issues
 
-This project is a starting point for a Flutter application.
+Run it with:
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+The app intentionally includes risky screens. Open a scenario, trigger the issue, and check the debug console for the formatted report.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The package is debug-only at runtime. Release builds return before installing global error hooks or frame timing callbacks.

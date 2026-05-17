@@ -22,7 +22,8 @@ class AsyncRiskScreen extends StatelessWidget {
             onTest: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => const _SetStateAfterDisposeWidget()),
+                builder: (_) => const _SetStateAfterDisposeWidget(),
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -35,8 +36,7 @@ class AsyncRiskScreen extends StatelessWidget {
                 'The subscription keeps firing after the widget is gone.',
             onTest: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) => const _StreamLeakWidget()),
+              MaterialPageRoute(builder: (_) => const _StreamLeakWidget()),
             ),
           ),
           const SizedBox(height: 12),
@@ -49,8 +49,7 @@ class AsyncRiskScreen extends StatelessWidget {
                 'The timer keeps ticking after the widget is removed.',
             onTest: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (_) => const _TimerLeakWidget()),
+              MaterialPageRoute(builder: (_) => const _TimerLeakWidget()),
             ),
           ),
         ],
@@ -127,9 +126,9 @@ class _StreamLeakState extends State<_StreamLeakWidget> {
     super.initState();
     _subscription = Stream.periodic(const Duration(seconds: 1), (i) => i)
         .listen((tick) {
-      if (mounted) setState(() => _ticks = tick);
-      debugPrint('🔴 Stream tick $tick — still firing even after dispose!');
-    });
+          if (mounted) setState(() => _ticks = tick);
+          debugPrint('🔴 Stream tick $tick — still firing even after dispose!');
+        });
   }
 
   // Intentional: no dispose() override — _subscription.cancel() never called
@@ -142,8 +141,7 @@ class _StreamLeakState extends State<_StreamLeakWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Stream ticks: $_ticks',
-                style: const TextStyle(fontSize: 24)),
+            Text('Stream ticks: $_ticks', style: const TextStyle(fontSize: 24)),
             const SizedBox(height: 16),
             const Text(
               'Pop this screen — the stream keeps printing to console\n'
@@ -207,8 +205,7 @@ class _TimerLeakState extends State<_TimerLeakWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Timer ticks: $_ticks',
-                style: const TextStyle(fontSize: 24)),
+            Text('Timer ticks: $_ticks', style: const TextStyle(fontSize: 24)),
             const SizedBox(height: 16),
             const Text(
               'Pop this screen — the timer keeps printing to console\n'
@@ -265,21 +262,23 @@ class _RiskTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Icon(icon, size: 20),
-            const SizedBox(width: 8),
-            Text(title,
+          Row(
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 15)),
-          ]),
-          const SizedBox(height: 8),
-          Text(description,
-              style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: onTest,
-            child: const Text('Run Test →'),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
+          Text(description, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: onTest, child: const Text('Run Test →')),
         ],
       ),
     );

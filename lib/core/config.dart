@@ -1,16 +1,38 @@
+/// Configuration for runtime risk detection and optional static lint scanning.
+///
+/// All runtime detectors are debug-only. In release builds, error capture
+/// returns before registering global error hooks.
 class RiskDetectorConfig {
+  /// Whether Flutter framework errors should be inspected for RenderFlex
+  /// overflow diagnostics.
   final bool detectOverflows;
+
+  /// Whether async-style Flutter errors should be classified and logged with
+  /// targeted suggestions.
   final bool detectAsyncRisks;
+
+  /// Whether rebuild and jank tracking should be enabled.
   final bool detectRebuilds;
+
+  /// Whether startup initialization should run the lint scan.
   final bool detectLintIssues;
+
+  /// Directory scanned by the lint analyzer when [detectLintIssues] is true.
+  ///
+  /// Defaults to `lib` when omitted. Static lint scanning requires `dart:io`;
+  /// on platforms without `dart:io`, the analyzer returns an empty result.
   final String? lintScanDirectory;
+
   /// Rebuild count before warnings start. Defaults to 10.
   final int rebuildWarningThreshold;
+
   /// Rebuild count before storm is declared. Defaults to 20.
   final int rebuildStormThreshold;
+
   /// Jank frame threshold in milliseconds. Defaults to 16ms (60fps).
   final int jankThresholdMs;
 
+  /// Creates an immutable detector configuration.
   const RiskDetectorConfig({
     this.detectOverflows = true,
     this.detectAsyncRisks = true,
@@ -22,6 +44,7 @@ class RiskDetectorConfig {
     this.jankThresholdMs = 16,
   });
 
+  /// Returns a copy with selected fields replaced.
   RiskDetectorConfig copyWith({
     bool? detectOverflows,
     bool? detectAsyncRisks,
@@ -31,19 +54,20 @@ class RiskDetectorConfig {
     int? rebuildWarningThreshold,
     int? rebuildStormThreshold,
     int? jankThresholdMs,
-  }) =>
-      RiskDetectorConfig(
-        detectOverflows: detectOverflows ?? this.detectOverflows,
-        detectAsyncRisks: detectAsyncRisks ?? this.detectAsyncRisks,
-        detectRebuilds: detectRebuilds ?? this.detectRebuilds,
-        detectLintIssues: detectLintIssues ?? this.detectLintIssues,
-        lintScanDirectory: lintScanDirectory ?? this.lintScanDirectory,
-        rebuildWarningThreshold:
-            rebuildWarningThreshold ?? this.rebuildWarningThreshold,
-        rebuildStormThreshold:
-            rebuildStormThreshold ?? this.rebuildStormThreshold,
-        jankThresholdMs: jankThresholdMs ?? this.jankThresholdMs,
-      );
+  }) {
+    return RiskDetectorConfig(
+      detectOverflows: detectOverflows ?? this.detectOverflows,
+      detectAsyncRisks: detectAsyncRisks ?? this.detectAsyncRisks,
+      detectRebuilds: detectRebuilds ?? this.detectRebuilds,
+      detectLintIssues: detectLintIssues ?? this.detectLintIssues,
+      lintScanDirectory: lintScanDirectory ?? this.lintScanDirectory,
+      rebuildWarningThreshold:
+          rebuildWarningThreshold ?? this.rebuildWarningThreshold,
+      rebuildStormThreshold:
+          rebuildStormThreshold ?? this.rebuildStormThreshold,
+      jankThresholdMs: jankThresholdMs ?? this.jankThresholdMs,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>

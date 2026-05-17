@@ -57,12 +57,18 @@ class HomeScreen extends StatelessWidget {
           return Card(
             elevation: 2,
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               leading: CircleAvatar(
                 backgroundColor: s.color.withValues(alpha: 0.15),
                 child: Icon(s.icon, color: s.color),
               ),
-              title: Text(s.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+              title: Text(
+                s.title,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               subtitle: Text(s.subtitle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.pushNamed(context, s.route),

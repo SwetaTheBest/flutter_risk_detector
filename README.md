@@ -1,10 +1,12 @@
 # flutter_risk_detector
 
 [![pub version](https://img.shields.io/pub/v/flutter_risk_detector.svg)](https://pub.dev/packages/flutter_risk_detector)
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/swetajain/flutter_risk_detector/blob/main/LICENSE)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/SwetaTheBest/flutter_risk_detector/blob/main/LICENSE)
 [![flutter](https://img.shields.io/badge/flutter-%3E%3D3.10.0-blue.svg)](https://flutter.dev)
 
-A Flutter debugging toolkit that detects **RenderFlex overflows**, **rebuild storms**, **jank**, **async risks**, **memory leaks**, and **lint issues** — all at runtime and via static analysis, with zero impact on release builds.
+A Flutter debugging toolkit for surfacing common development-time risks: **RenderFlex overflows**, **rebuild storms**, **jank**, **async lifecycle errors**, and lightweight static lint findings.
+
+Runtime detection is debug-only. Static lint scanning runs only when `dart:io` is available; on Flutter Web the package remains importable and the lint analyzer returns an empty result.
 
 ---
 
@@ -12,11 +14,11 @@ A Flutter debugging toolkit that detects **RenderFlex overflows**, **rebuild sto
 
 | Feature | What it detects |
 |---|---|
-| 🔴 Overflow detection | Exact widget, file, line, direction, and pixel amount |
-| 🔄 Rebuild storm detection | Cause analysis + fix suggestions per storm type |
+| 🔴 Overflow detection | Best-effort widget, file, line, direction, and pixel amount |
+| 🔄 Rebuild storm detection | Rebuild rate reports + likely cause suggestions |
 | 🟠 Jank detection | Frame build/raster time via `SchedulerBinding` |
-| ⚡ Async risk detection | `setState` after dispose, stream leaks, timer leaks |
-| 🧠 Memory leak detection | Controllers and subscriptions not disposed |
+| ⚡ Async risk detection | `setState` after dispose and common async lifecycle errors |
+| 🧠 Memory leak hints | Controllers and subscriptions not disposed in static scans |
 | 🔍 Static lint analysis | 18 rules: sync I/O, hardcoded values, empty catches, and more |
 | 📋 Log buffer | Throttled in-memory buffer, zero output in release builds |
 
@@ -50,6 +52,31 @@ void main() {
 
 All detectors are enabled by default and are **automatically disabled in release builds**.
 
+`ErrorCapture` preserves any existing `FlutterError.onError` and `PlatformDispatcher.onError` handlers, then delegates to them after recording diagnostics.
+
+---
+
+## 🧪 Example app
+
+A fully working example is included in the `example/` folder. To run it:
+
+```bash
+cd example
+flutter run
+```
+
+The example demonstrates overflow detection, rebuild tracking, async risk reporting, and lint scanning in a debug build.
+
+## ✅ Testing
+
+Run package tests from the package root:
+
+```bash
+flutter test
+```
+
+This package is designed for development-time diagnostics, so all runtime checks are active only in debug mode.
+
 ---
 
 ## ⚙️ Configuration
@@ -78,7 +105,7 @@ void main() {
 
 ## 🔴 Overflow Detection
 
-Overflows are caught automatically via `FlutterError.onError`. The report includes the exact widget, parent, file location, direction, and pixel amount:
+Overflows are caught automatically via `FlutterError.onError`. Reports are best-effort because Flutter overflow messages and stack traces vary by framework version and build context:
 
 ```
 ⚠ OVERFLOW RISK DETECTED
@@ -109,7 +136,7 @@ RiskRebuildTracker(
 )
 ```
 
-When rebuilds exceed the threshold, a full report is printed:
+When rebuilds exceed the threshold, a report is printed with rate-based hints:
 
 ```
 🔴 REBUILD STORM — CheckoutScreen
@@ -180,7 +207,7 @@ if (type == AsyncRiskType.setStateAfterDispose) {
 
 ## 🔍 Static Lint Analysis
 
-On startup, `LintAnalyzer` scans your `lib/` directory and reports issues with exact file and line numbers:
+On startup, `LintAnalyzer` scans your `lib/` directory and reports heuristic issues with file and line numbers. This scan requires `dart:io`; on platforms without `dart:io`, `LintAnalyzer` returns an empty result instead of breaking imports.
 
 ```
 🔍 LINT ANALYSIS REPORT
@@ -265,12 +292,22 @@ flutter test
 
 ## 🛡 Release Safety
 
-Every detector, logger, and analyzer is guarded with `kDebugMode`. In release builds:
+Runtime hooks and logs are guarded with `kDebugMode`. In release builds:
 
-- `ErrorCapture` hooks are still registered but all analysis methods return immediately
+- `ErrorCapture` returns before registering global error hooks
 - `RiskLogger` produces no output
-- `LintAnalyzer` scan is skipped
+- Startup lint scanning is skipped
+- `LintAnalyzer` uses an IO implementation only where `dart:io` is available
 - Zero performance impact on your users
+
+---
+
+## ⚠️ Limitations
+
+- Diagnostics are heuristics intended for development feedback, not compiler-accurate analysis.
+- Static lint scanning is regex/source based and can produce false positives or miss context-sensitive cases.
+- Rebuild cause suggestions are inferred from rebuild counts and frame timing, not from a full widget-tree profiler.
+- For production crash reporting, keep using tools such as Crashlytics or Sentry; this package delegates to existing handlers instead of replacing them.
 
 ---
 
@@ -304,7 +341,7 @@ Contributions are welcome! Please:
 3. Add tests for any new functionality
 4. Submit a pull request
 
-Report bugs and request features via [GitHub Issues](https://github.com/swetajain/flutter_risk_detector/issues).
+Report bugs and request features via [GitHub Issues](https://github.com/SwetaTheBest/flutter_risk_detector/issues).
 
 ---
 

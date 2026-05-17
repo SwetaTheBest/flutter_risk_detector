@@ -44,7 +44,9 @@ class RiskLogger {
     }
     final key = message.length > 60 ? message.substring(0, 60) : message;
     final last = _lastSeen[key];
-    if (last != null && DateTime.now().difference(last) < _throttle) return true;
+    if (last != null && DateTime.now().difference(last) < _throttle) {
+      return true;
+    }
     _lastSeen[key] = DateTime.now();
     return false;
   }

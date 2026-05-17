@@ -34,8 +34,11 @@ class OverflowResult {
       widgetName, fileName, line, column, overflowDirection, overflowPixels);
 
   String get formattedMessage {
-    final location = line != null ? '$fileName:$line${column != null ? ':$column' : ''}' : fileName;
-    final parent = parentWidget != null ? '\nParent Widget:\n$parentWidget' : '';
+    final location = line != null
+        ? '$fileName:$line${column != null ? ':$column' : ''}'
+        : fileName;
+    final parent =
+        parentWidget != null ? '\nParent Widget:\n$parentWidget' : '';
     final overflow = overflowDirection != null
         ? '\nOverflow: ${overflowPixels?.toStringAsFixed(1) ?? '?'}px on the $overflowDirection side'
         : '';

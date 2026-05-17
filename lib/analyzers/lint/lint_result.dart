@@ -53,7 +53,8 @@ class LintResult {
     if (!hasIssues) return '\u2705 No lint issues found.';
     final buffer = StringBuffer();
     buffer.writeln('\ud83d\udd0d LINT ANALYSIS REPORT');
-    buffer.writeln('Errors: $errorCount  Warnings: $warningCount  Info: $infoCount');
+    buffer.writeln(
+        'Errors: $errorCount  Warnings: $warningCount  Info: $infoCount');
     buffer.writeln('\u2500' * 50);
     for (final entry in byFile.entries) {
       buffer.writeln('\n\ud83d\udcc4 ${entry.key}');
