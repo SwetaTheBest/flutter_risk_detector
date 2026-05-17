@@ -80,20 +80,28 @@ The example demonstrates overflow detection, rebuild tracking, async risk report
 
 ## 🎬 Demo
 
-![Demo](assets/gifs/demo_flutter_risk.gif)
-
+<p align="center">
+  <img src="assets/gifs/demo_flutter_risk.gif" width="400"/>
+</p>
 ## 📸 Screenshots
 
 ### Overflow Detection
 
-![Overflow](assets/screenshots/example_two.png)
-![Overflow](assets/screenshots/Screenshot-overflow.png)
+<p align="center">
+  <img src="assets/screenshots/example_two.png" width="400"/>
+</p>
+<p align="center">
+  <img src="assets/screenshots/Screenshot-overflow.png" width="400"/>
+</p>
 
 ### Rebuild Storm Detection
 
-![Rebuild](assets/screenshots/example_four.png)
-
-![Rebuild](assets/screenshots/Screenshot-jank.png)
+<p align="center">
+  <img src="assets/screenshots/example_four.png" width="400"/>
+</p>
+<p align="center">
+  <img src="assets/screenshots/Screenshot-jank.png" width="400"/>
+</p>
 
 ## ✅ Testing
 
