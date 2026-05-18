@@ -23,15 +23,15 @@ with lightweight runtime diagnostics and static analysis.
 
 ## ✨ Features
 
-| Feature | What it detects |
-|---|---|
-| 🔴 Overflow detection | Best-effort widget, file, line, direction, and pixel amount |
-| 🔄 Rebuild storm detection | Rebuild rate reports + likely cause suggestions |
-| 🟠 Jank detection | Frame build/raster time via `SchedulerBinding` |
-| ⚡ Async risk detection | `setState` after dispose and common async lifecycle errors |
-| 🧠 Memory leak hints | Controllers and subscriptions not disposed in static scans |
-| 🔍 Static lint analysis | 18 rules: sync I/O, hardcoded values, empty catches, and more |
-| 📋 Log buffer | Throttled in-memory buffer, zero output in release builds |
+| Feature                    | What it detects                                               |
+| -------------------------- | ------------------------------------------------------------- |
+| 🔴 Overflow detection      | Best-effort widget, file, line, direction, and pixel amount   |
+| 🔄 Rebuild storm detection | Rebuild rate reports + likely cause suggestions               |
+| 🟠 Jank detection          | Frame build/raster time via `SchedulerBinding`                |
+| ⚡ Async risk detection    | `setState` after dispose and common async lifecycle errors    |
+| 🧠 Memory leak hints       | Controllers and subscriptions not disposed in static scans    |
+| 🔍 Static lint analysis    | 18 rules: sync I/O, hardcoded values, empty catches, and more |
+| 📋 Log buffer              | Throttled in-memory buffer, zero output in release builds     |
 
 ---
 
@@ -85,6 +85,10 @@ The example demonstrates overflow detection, rebuild tracking, async risk report
 </p>
 ## 📸 Screenshots
 
+<p align="center">
+  <img src="assets/screenshots/example_one.png" width="400"/>
+</p>
+
 ### Overflow Detection
 
 <p align="center">
@@ -102,6 +106,22 @@ The example demonstrates overflow detection, rebuild tracking, async risk report
 <p align="center">
   <img src="assets/screenshots/Screenshot-jank.png" width="700"/>
 </p>
+<p align="center">
+  <img src="assets/screenshots/Screenshot-jank-rebuilds.png" width="700"/>
+</p>
+
+### Lint Issues Detection
+
+<p align="center">
+  <img src="assets/screenshots/example_three.png" width="400"/>
+</p>
+
+### Memory Leak Detection
+
+<p align="center">
+  <img src="assets/screenshots/example_five.png" width="400"/></p>
+  <p align = "center"><img src= "assets\screenshots\Screenshot_memory_leak.png" width = "700"/> </p>
+  <p align = "center"><img src= "assets\screenshots\Screenshot-stream.png" width = "700"/> </p>
 
 ## ✅ Testing
 
@@ -283,26 +303,26 @@ for (final entry in result.byFile.entries) {
 
 ### Lint Rules
 
-| Rule | Severity | Description |
-|---|---|---|
-| `avoid_print` | ⚠ Warning | `print()` leaks in release builds |
-| `prefer_const_constructors` | ℹ Info | Widget constructors missing `const` |
-| `prefer_typed_declarations` | ℹ Info | `var` used instead of explicit type |
-| `avoid_hardcoded_colors` | ⚠ Warning | Raw `Color(0x...)` values |
-| `avoid_hardcoded_strings` | ℹ Info | Plain strings in `Text()` widgets |
-| `empty_catches` | ❌ Error | Empty `catch` blocks |
-| `todo_comment` | ℹ Info | Unresolved `TODO`/`FIXME` comments |
-| `unawaited_futures` | ⚠ Warning | Async calls without `await` |
-| `setState_after_async` | ❌ Error | `setState()` after `await` without `mounted` check |
-| `missing_key_in_list` | ℹ Info | `ListView/GridView.builder` without item keys |
-| `lines_longer_than_120_chars` | ℹ Info | Lines exceeding 120 characters |
-| `trailing_whitespace` | ℹ Info | Trailing spaces or tabs |
-| `debug_code_in_release` | ⚠ Warning | Negated `kDebugMode` check |
-| `controller_not_disposed` | ❌ Error | `AnimationController`, `TextEditingController`, etc. not disposed |
-| `stream_subscription_leak` | ❌ Error | `StreamSubscription` without `cancel()` |
-| `timer_not_cancelled` | ❌ Error | `Timer` without `cancel()` |
-| `sync_io_on_ui_thread` | ⚠ Warning | `readAsStringSync`, `jsonDecode` on UI thread |
-| `context_across_async` | ❌ Error | `BuildContext` used after `await` without `mounted` check |
+| Rule                          | Severity  | Description                                                       |
+| ----------------------------- | --------- | ----------------------------------------------------------------- |
+| `avoid_print`                 | ⚠ Warning | `print()` leaks in release builds                                 |
+| `prefer_const_constructors`   | ℹ Info    | Widget constructors missing `const`                               |
+| `prefer_typed_declarations`   | ℹ Info    | `var` used instead of explicit type                               |
+| `avoid_hardcoded_colors`      | ⚠ Warning | Raw `Color(0x...)` values                                         |
+| `avoid_hardcoded_strings`     | ℹ Info    | Plain strings in `Text()` widgets                                 |
+| `empty_catches`               | ❌ Error  | Empty `catch` blocks                                              |
+| `todo_comment`                | ℹ Info    | Unresolved `TODO`/`FIXME` comments                                |
+| `unawaited_futures`           | ⚠ Warning | Async calls without `await`                                       |
+| `setState_after_async`        | ❌ Error  | `setState()` after `await` without `mounted` check                |
+| `missing_key_in_list`         | ℹ Info    | `ListView/GridView.builder` without item keys                     |
+| `lines_longer_than_120_chars` | ℹ Info    | Lines exceeding 120 characters                                    |
+| `trailing_whitespace`         | ℹ Info    | Trailing spaces or tabs                                           |
+| `debug_code_in_release`       | ⚠ Warning | Negated `kDebugMode` check                                        |
+| `controller_not_disposed`     | ❌ Error  | `AnimationController`, `TextEditingController`, etc. not disposed |
+| `stream_subscription_leak`    | ❌ Error  | `StreamSubscription` without `cancel()`                           |
+| `timer_not_cancelled`         | ❌ Error  | `Timer` without `cancel()`                                        |
+| `sync_io_on_ui_thread`        | ⚠ Warning | `readAsStringSync`, `jsonDecode` on UI thread                     |
+| `context_across_async`        | ❌ Error  | `BuildContext` used after `await` without `mounted` check         |
 
 ---
 
