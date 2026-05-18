@@ -19,6 +19,9 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Verify Flutter installation
+        run: flutter --version
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -31,17 +34,11 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      - name: Setup pub credentials
+      - name: Setup pub.dev credentials
         run: |
           mkdir -p ~/.config/dart
           cat > ~/.config/dart/pub-credentials.json <<EOF
-          {
-            "accessToken":"${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}",
-            "refreshToken":"",
-            "tokenEndpoint":"https://oauth2.googleapis.com/token",
-            "scopes":["https://www.googleapis.com/auth/userinfo.email","openid"],
-            "expiration":9999999999999
-          }
+          ${{ secrets.PUB_DEV_CREDENTIALS }}
           EOF
 
       - name: Publish to pub.dev
