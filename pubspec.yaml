@@ -2,7 +2,7 @@ name: flutter_risk_detector
 description: >-
   A Flutter debugging toolkit that detects RenderFlex overflows, rebuild storms,
   async risks, memory leaks, jank, and lint issues at runtime and via static analysis.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/SwetaTheBest/flutter_risk_detector
 repository: https://github.com/SwetaTheBest/flutter_risk_detector
 issue_tracker: https://github.com/SwetaTheBest/flutter_risk_detector/issues
