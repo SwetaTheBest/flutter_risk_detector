@@ -1,3 +1,17 @@
+## 0.1.1 — 2026-05-18
+
+### Added
+
+**Stale UI Detection**
+- Added `TrackedState<T>` for tracking state updates, update counts, and metadata.
+- Added `RebuildMonitor` and `StateChangeTracker` to correlate widget rebuilds with state changes.
+- Added `UIUpdateDetector` to warn when tracked state updates do not result in an expected rebuild within `uiUpdateThresholdSeconds`.
+- Added `enableUiUpdateDetection` and `uiUpdateThresholdSeconds` to `RiskDetectorConfig`.
+- Added example demo screen for stale UI detection with a faulty update path and manual refresh path.
+
+### Fixed
+- Updated example memory leak demo screen to scroll when the keyboard opens, preventing overflow on mobile.
+
 ## 0.1.0 — 2026-05-17
 
 ### Added

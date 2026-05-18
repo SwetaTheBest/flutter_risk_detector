@@ -1,0 +1,48 @@
+name: Publish Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze project
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Setup pub credentials
+        run: |
+          mkdir -p ~/.config/dart
+          cat > ~/.config/dart/pub-credentials.json <<EOF
+          {
+            "accessToken":"${{ secrets.PUB_DEV_PUBLISH_ACCESS_TOKEN }}",
+            "refreshToken":"",
+            "tokenEndpoint":"https://oauth2.googleapis.com/token",
+            "scopes":["https://www.googleapis.com/auth/userinfo.email","openid"],
+            "expiration":9999999999999
+          }
+          EOF
+
+      - name: Publish to pub.dev
+        run: flutter pub publish -f

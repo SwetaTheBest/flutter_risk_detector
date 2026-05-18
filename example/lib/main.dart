@@ -9,6 +9,7 @@ import 'screens/lint_test_screen.dart';
 import 'screens/memory_leak_screen.dart';
 import 'screens/overflow_test_screen.dart';
 import 'screens/rebuild_test_screen.dart';
+import 'screens/stale_ui_test_screen.dart';
 
 const _riskDetectorConfig = RiskDetectorConfig(
   detectOverflows: true,
@@ -55,6 +56,7 @@ class RiskDetectorExampleApp extends StatelessWidget {
         '/async': (_) => const AsyncRiskScreen(),
         '/memory': (_) => const MemoryLeakScreen(),
         '/lint': (_) => const LintTestScreen(),
+        '/stale-ui': (_) => const StaleUiTestScreen(),
       },
     );
   }

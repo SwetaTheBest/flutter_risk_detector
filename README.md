@@ -30,6 +30,7 @@ with lightweight runtime diagnostics and static analysis.
 | 🟠 Jank detection          | Frame build/raster time via `SchedulerBinding`                |
 | ⚡ Async risk detection    | `setState` after dispose and common async lifecycle errors    |
 | 🧠 Memory leak hints       | Controllers and subscriptions not disposed in static scans    |
+| 🧠 Stale UI detection      | State updates that do not trigger expected rebuilds           |
 | 🔍 Static lint analysis    | 18 rules: sync I/O, hardcoded values, empty catches, and more |
 | 📋 Log buffer              | Throttled in-memory buffer, zero output in release builds     |
 
@@ -81,12 +82,12 @@ The example demonstrates overflow detection, rebuild tracking, async risk report
 ## 🎬 Demo
 
 <p align="center">
-  <img src="assets/gifs/demo_flutter_risk.gif" width="400"/>
+  <img src="assets\gifs\second_update.gif" width="400"/>
 </p>
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="assets/screenshots/example_one.png" width="400"/>
+  <img src="assets/screenshots/example_zero.png" width="400"/>
 </p>
 
 ### Overflow Detection
@@ -123,6 +124,15 @@ The example demonstrates overflow detection, rebuild tracking, async risk report
   <p align = "center"><img src= "assets\screenshots\Screenshot_memory_leak.png" width = "700"/> </p>
   <p align = "center"><img src= "assets\screenshots\Screenshot-stream.png" width = "700"/> </p>
 
+
+  ### Stale UI Detection
+
+  <p align="center">
+  <img src="assets/screenshots/example_seven.png" width="400"/></p>
+  <p align="center">
+  <img src="assets/screenshots/example_six.png" width="400"/></p>
+  <p align = "center"><img src= "assets\screenshots\screenshot_stale_ui_log.png" width = "700"/> </p>
+
 ## ✅ Testing
 
 Run package tests from the package root:
@@ -152,6 +162,9 @@ void main() {
       detectRebuilds: true,
       detectLintIssues: true,
       lintScanDirectory: 'lib',   // directory to scan on startup
+      detectRebuilds: true,
+      enableUiUpdateDetection: true,
+      uiUpdateThresholdSeconds: 2, // seconds before stale UI warning
       rebuildWarningThreshold: 10, // rebuilds before warning
       rebuildStormThreshold: 20,   // rebuilds before storm alert
       jankThresholdMs: 16,         // ms per frame (16 = 60fps)
@@ -211,6 +224,34 @@ Suggestions:
   → Move setState calls to event handlers, never inside build()
   → Extract the stable subtree into a separate StatelessWidget
   → Use const constructors wherever possible
+```
+
+## 🧠 Stale UI Detection
+
+This package now supports tracking state updates separately from widget rebuilds. Use `TrackedState<T>` for values that should trigger UI refreshes, then wrap the target subtree with `RiskRebuildTracker`.
+
+```dart
+final counter = TrackedState<int>(0, tag: 'CheckoutScreenCounter');
+
+void onTap() {
+  counter.value += 1;
+  // If the UI never rebuilds for 'CheckoutScreenCounter',
+  // flutter_risk_detector will warn after the configured threshold.
+}
+```
+
+If the state changes but no rebuild is observed within the configured threshold, the detector logs a warning such as:
+
+```
+⚠ UI UPDATE RISK DETECTED
+
+Widget: CheckoutScreen
+State updates: 3
+Last state update: 2026-05-18T12:00:00.000Z
+Last rebuild: none
+
+Reason:
+State changed successfully but no UI rebuild was observed within 2s.
 ```
 
 You can override thresholds per widget:

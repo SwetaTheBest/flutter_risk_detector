@@ -56,59 +56,61 @@ class _MemoryLeakScreenState extends State<MemoryLeakScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Memory Leak Demo')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _LeakRow(
-              isLeaking: true,
-              label: 'AnimationController',
-              detail: 'Declared — dispose() NOT called',
-            ),
-            _LeakRow(
-              isLeaking: true,
-              label: 'TextEditingController',
-              detail: 'Declared — dispose() NOT called',
-            ),
-            _LeakRow(
-              isLeaking: true,
-              label: 'ScrollController',
-              detail: 'Declared — dispose() NOT called',
-            ),
-            _LeakRow(
-              isLeaking: false,
-              label: 'FocusNode',
-              detail: 'Declared — dispose() IS called ✓',
-            ),
-            const Divider(height: 32),
-            const Text(
-              'The LintAnalyzer scans this file at app startup and reports '
-              'the three leaking controllers in the debug console.\n\n'
-              'Check console output for:\n'
-              '  ❌ [controller_not_disposed]\n\n'
-              'Use the cleanup button on the home screen to dispose these resources.',
-            ),
-            const SizedBox(height: 24),
-            // Show the animation to prove the controller is running
-            AnimatedBuilder(
-              animation: _animController,
-              builder: (_, __) => LinearProgressIndicator(
-                value: _animController.value,
-                backgroundColor: Colors.grey.shade200,
-                color: Colors.purple,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _LeakRow(
+                isLeaking: true,
+                label: 'AnimationController',
+                detail: 'Declared — dispose() NOT called',
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _textController,
-              focusNode: _focusNode,
-              decoration: const InputDecoration(
-                labelText: 'TextEditingController (leaking)',
-                border: OutlineInputBorder(),
+              _LeakRow(
+                isLeaking: true,
+                label: 'TextEditingController',
+                detail: 'Declared — dispose() NOT called',
               ),
-            ),
-          ],
+              _LeakRow(
+                isLeaking: true,
+                label: 'ScrollController',
+                detail: 'Declared — dispose() NOT called',
+              ),
+              _LeakRow(
+                isLeaking: false,
+                label: 'FocusNode',
+                detail: 'Declared — dispose() IS called ✓',
+              ),
+              const Divider(height: 32),
+              const Text(
+                'The LintAnalyzer scans this file at app startup and reports '
+                'the three leaking controllers in the debug console.\n\n'
+                'Check console output for:\n'
+                '  ❌ [controller_not_disposed]\n\n'
+                'Use the cleanup button on the home screen to dispose these resources.',
+              ),
+              const SizedBox(height: 24),
+              // Show the animation to prove the controller is running
+              AnimatedBuilder(
+                animation: _animController,
+                builder: (_, __) => LinearProgressIndicator(
+                  value: _animController.value,
+                  backgroundColor: Colors.grey.shade200,
+                  color: Colors.purple,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _textController,
+                focusNode: _focusNode,
+                decoration: const InputDecoration(
+                  labelText: 'TextEditingController (leaking)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

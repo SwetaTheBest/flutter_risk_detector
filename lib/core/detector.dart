@@ -9,6 +9,8 @@ import 'logger.dart';
 class RiskDetector {
   static RiskDetectorConfig _config = const RiskDetectorConfig();
 
+  static RiskDetectorConfig get config => _config;
+
   static void configure(RiskDetectorConfig config) {
     _config = config;
     // Push thresholds into RebuildAnalyzer so the tracker widget picks them up

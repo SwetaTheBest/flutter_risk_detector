@@ -26,6 +26,13 @@ class HomeScreen extends StatelessWidget {
       subtitle: 'setState after dispose, stream leak, timer leak',
     ),
     _Scenario(
+      route: '/stale-ui',
+      icon: Icons.broken_image,
+      color: Colors.amber,
+      title: 'Stale UI Detection',
+      subtitle: 'State updates without setState or rebuild triggers',
+    ),
+    _Scenario(
       route: '/memory',
       icon: Icons.memory,
       color: Colors.purple,

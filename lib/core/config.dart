@@ -17,6 +17,13 @@ class RiskDetectorConfig {
   /// Whether startup initialization should run the lint scan.
   final bool detectLintIssues;
 
+  /// Whether stale UI detection should be enabled.
+  final bool enableUiUpdateDetection;
+
+  /// Threshold in seconds used to evaluate whether a tracked state update should
+  /// have produced a rebuild.
+  final int uiUpdateThresholdSeconds;
+
   /// Directory scanned by the lint analyzer when [detectLintIssues] is true.
   ///
   /// Defaults to `lib` when omitted. Static lint scanning requires `dart:io`;
@@ -38,6 +45,8 @@ class RiskDetectorConfig {
     this.detectAsyncRisks = true,
     this.detectRebuilds = true,
     this.detectLintIssues = true,
+    this.enableUiUpdateDetection = true,
+    this.uiUpdateThresholdSeconds = 2,
     this.lintScanDirectory,
     this.rebuildWarningThreshold = 10,
     this.rebuildStormThreshold = 20,
@@ -50,6 +59,8 @@ class RiskDetectorConfig {
     bool? detectAsyncRisks,
     bool? detectRebuilds,
     bool? detectLintIssues,
+    bool? enableUiUpdateDetection,
+    int? uiUpdateThresholdSeconds,
     String? lintScanDirectory,
     int? rebuildWarningThreshold,
     int? rebuildStormThreshold,
@@ -60,6 +71,10 @@ class RiskDetectorConfig {
       detectAsyncRisks: detectAsyncRisks ?? this.detectAsyncRisks,
       detectRebuilds: detectRebuilds ?? this.detectRebuilds,
       detectLintIssues: detectLintIssues ?? this.detectLintIssues,
+      enableUiUpdateDetection:
+          enableUiUpdateDetection ?? this.enableUiUpdateDetection,
+      uiUpdateThresholdSeconds:
+          uiUpdateThresholdSeconds ?? this.uiUpdateThresholdSeconds,
       lintScanDirectory: lintScanDirectory ?? this.lintScanDirectory,
       rebuildWarningThreshold:
           rebuildWarningThreshold ?? this.rebuildWarningThreshold,
@@ -76,6 +91,8 @@ class RiskDetectorConfig {
       detectAsyncRisks == other.detectAsyncRisks &&
       detectRebuilds == other.detectRebuilds &&
       detectLintIssues == other.detectLintIssues &&
+      enableUiUpdateDetection == other.enableUiUpdateDetection &&
+      uiUpdateThresholdSeconds == other.uiUpdateThresholdSeconds &&
       lintScanDirectory == other.lintScanDirectory &&
       rebuildWarningThreshold == other.rebuildWarningThreshold &&
       rebuildStormThreshold == other.rebuildStormThreshold &&
@@ -87,6 +104,8 @@ class RiskDetectorConfig {
         detectAsyncRisks,
         detectRebuilds,
         detectLintIssues,
+        enableUiUpdateDetection,
+        uiUpdateThresholdSeconds,
         lintScanDirectory,
         rebuildWarningThreshold,
         rebuildStormThreshold,

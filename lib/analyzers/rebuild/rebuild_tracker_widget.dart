@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../core/logger.dart';
+import '../../state_tracking/rebuild_monitor.dart';
 import 'rebuild_analyzer.dart';
 
 /// Wraps a subtree and logs debug-only rebuild and frame timing diagnostics.
@@ -72,7 +74,7 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
     final threshold = Duration(milliseconds: widget.jankThresholdMs);
     for (final timing in timings) {
       if (timing.buildDuration > threshold) {
-        debugPrint(
+        RiskLogger.warning(
           '🟠 JANK [${widget.tag}] '
           'build=${timing.buildDuration.inMilliseconds}ms '
           'raster=${timing.rasterDuration.inMilliseconds}ms '
@@ -87,6 +89,10 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
     if (!kDebugMode) return widget.child;
 
     _rebuildCount++;
+    RebuildMonitor.registerRebuild(
+      tag: widget.tag,
+      timestamp: DateTime.now(),
+    );
 
     if (_rebuildCount > _effectiveWarningThreshold) {
       final now = DateTime.now();
@@ -98,11 +104,11 @@ class _RiskRebuildTrackerState extends State<RiskRebuildTracker> {
           rebuildCount: _rebuildCount,
           window: now.difference(_startTime),
         );
-        debugPrint(result.formattedMessage);
+        RiskLogger.warning(result.formattedMessage);
       }
     } else if (_milestones.contains(_rebuildCount)) {
       // Log only at milestones — not on every single rebuild
-      debugPrint('🔄 [${widget.tag}] rebuild #$_rebuildCount');
+      RiskLogger.log('🔄 [${widget.tag}] rebuild #$_rebuildCount');
     }
 
     return widget.child;

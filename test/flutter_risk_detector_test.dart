@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_risk_detector/flutter_risk_detector.dart';
 
@@ -545,6 +546,201 @@ void main() {
 
     test('hashCode is consistent', () {
       expect(d.hashCode, equals(const RiskDetectorConfig().hashCode));
+    });
+  });
+
+  // ─── State Tracking ───────────────────────────────────────────────────────
+  group('StateChangeTracker and RebuildMonitor', () {
+    setUp(() {
+      StateChangeTracker.clear();
+      RebuildMonitor.clear();
+    });
+
+    test('registerStateChange records metadata', () {
+      StateChangeTracker.registerStateChange(
+        tag: 'testState',
+        lastUpdated: DateTime.parse('2026-05-18T00:00:00.000Z'),
+        updateCount: 3,
+        description: 'demo',
+      );
+
+      final metadata = StateChangeTracker.metadataFor('testState');
+      expect(metadata, isNotNull);
+      expect(metadata?.updateCount, 3);
+      expect(metadata?.description, 'demo');
+    });
+
+    test('registerRebuild records rebuild metadata', () {
+      final first = DateTime.parse('2026-05-18T00:00:00.000Z');
+      final later = first.add(const Duration(seconds: 1));
+      RebuildMonitor.registerRebuild(tag: 'testWidget', timestamp: first);
+      RebuildMonitor.registerRebuild(tag: 'testWidget', timestamp: later);
+
+      final metadata = RebuildMonitor.metadataFor('testWidget');
+      expect(metadata, isNotNull);
+      expect(metadata?.rebuildCount, 2);
+      expect(metadata?.firstRebuildTime, first);
+      expect(metadata?.lastRebuildTime, later);
+      expect(metadata?.rebuildsPerSecond, greaterThan(0));
+    });
+
+    test('TrackedState updates metadata and schedules stale UI warning',
+        () async {
+      final oldConfig = RiskDetector.config;
+      RiskDetector.configure(
+          const RiskDetectorConfig(uiUpdateThresholdSeconds: 0));
+      RiskLogger.clear();
+      StateChangeTracker.clear();
+      RebuildMonitor.clear();
+
+      RebuildMonitor.registerRebuild(
+        tag: 'stale-test',
+        timestamp: DateTime.now(),
+      );
+
+      final state = TrackedState<int>(0, tag: 'stale-test');
+      state.value = 1;
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        RiskLogger.logBuffer.any(
+          (entry) => entry.contains('⚠ UI UPDATE RISK DETECTED'),
+        ),
+        isTrue,
+      );
+
+      RiskDetector.configure(oldConfig);
+    });
+
+    test(
+        'UIUpdateDetector does not warn when rebuild occurs after state update',
+        () async {
+      final oldConfig = RiskDetector.config;
+      RiskDetector.configure(
+          const RiskDetectorConfig(uiUpdateThresholdSeconds: 0));
+      RiskLogger.clear();
+      StateChangeTracker.clear();
+      RebuildMonitor.clear();
+
+      final state = TrackedState<int>(0, tag: 'stale-test');
+      state.value = 1;
+      RebuildMonitor.registerRebuild(
+        tag: 'stale-test',
+        timestamp: DateTime.now().add(const Duration(milliseconds: 1)),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        RiskLogger.logBuffer.any(
+          (entry) => entry.contains('⚠ UI UPDATE RISK DETECTED'),
+        ),
+        isFalse,
+      );
+
+      RiskDetector.configure(oldConfig);
+    });
+
+    test('UIUpdateDetector warns when no rebuild occurs after state update',
+        () async {
+      final oldConfig = RiskDetector.config;
+      RiskDetector.configure(
+          const RiskDetectorConfig(uiUpdateThresholdSeconds: 0));
+      RiskLogger.clear();
+      StateChangeTracker.clear();
+      RebuildMonitor.clear();
+
+      final state = TrackedState<int>(0, tag: 'stale-no-rebuild');
+      state.value = 1;
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        RiskLogger.logBuffer.any(
+          (entry) => entry.contains('⚠ UI UPDATE RISK DETECTED'),
+        ),
+        isTrue,
+      );
+
+      RiskDetector.configure(oldConfig);
+    });
+
+    test('TrackedState metadata reflects updates', () {
+      StateChangeTracker.clear();
+      final state = TrackedState<int>(0, tag: 'metadata-test');
+      expect(state.metadata.updateCount, 0);
+      expect(state.metadata.tag, 'metadata-test');
+
+      state.value = 7;
+      expect(state.metadata.updateCount, 1);
+      expect(state.metadata.lastUpdated, isNotNull);
+      expect(StateChangeTracker.metadataFor('metadata-test')?.updateCount, 1);
+    });
+
+    test('RiskLogger.warning throttles duplicate messages', () {
+      RiskLogger.clear();
+      RiskLogger.warning('duplicate test');
+      RiskLogger.warning('duplicate test');
+
+      expect(RiskLogger.logBuffer.length, equals(1));
+    });
+
+    testWidgets('TrackedState does not rebuild UI without setState',
+        (tester) async {
+      final oldConfig = RiskDetector.config;
+      RiskDetector.configure(const RiskDetectorConfig(
+        enableUiUpdateDetection: false,
+      ));
+
+      final state = TrackedState<int>(0, tag: 'ui-state-test');
+      var renderedValue = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                children: [
+                  Text('displayed: $renderedValue',
+                      key: const Key('displayed')),
+                  Text('rendered tracked: ${state.value}',
+                      key: const Key('rendered-tracked')),
+                  ElevatedButton(
+                    onPressed: () {
+                      state.value += 1;
+                    },
+                    child: const Text('Increment without rebuild'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        renderedValue = state.value;
+                      });
+                    },
+                    child: const Text('Refresh UI'),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+
+      expect(find.text('displayed: 0'), findsOneWidget);
+      expect(find.text('rendered tracked: 0'), findsOneWidget);
+
+      await tester.tap(find.text('Increment without rebuild'));
+      await tester.pump();
+
+      expect(find.text('displayed: 0'), findsOneWidget);
+      expect(find.text('rendered tracked: 0'), findsOneWidget);
+      expect(state.value, equals(1));
+
+      await tester.tap(find.text('Refresh UI'));
+      await tester.pump();
+
+      expect(find.text('displayed: 1'), findsOneWidget);
+      expect(find.text('rendered tracked: 1'), findsOneWidget);
+
+      RiskDetector.configure(oldConfig);
     });
   });
 
